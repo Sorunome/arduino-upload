@@ -1,0 +1,19 @@
+# See https://atom.io/docs/latest/hacking-atom-package-word-count#menus for more details
+'menu': [
+	{
+		'label': 'Packages'
+		'submenu': [
+			'label': 'Arduino Upload'
+			'submenu': [
+				{
+					'label': 'Build'
+					'command': 'arduino-upload:build'
+				},
+				{
+					'label': 'Upload'
+					'command': 'arduino-upload:upload'
+				}
+			]
+		]
+	}
+]
