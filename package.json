@@ -6,7 +6,8 @@
   "keywords": [
     "arduino",
     "upload",
-    "sketch"
+    "sketch",
+    "serial"
   ],
   "activationCommands": {
     "atom-workspace": [

@@ -1,3 +1,6 @@
+## 0.3.0
+* Filenames in error output are now clickable, also jumps to line
+
 ## 0.2.0
 * Added Serial monitor
 

@@ -47,8 +47,9 @@ module.exports = ArduinoUpload =
 		file?.pop()
 		name = file?.pop()
 		file?.push name
+		workpath = file?.join '/'
 		file?.push name+".ino"
-		file = file?.join("/")
+		file = file?.join "/"
 		dispError = false
 		output.reset()
 		if fs.existsSync(file)
@@ -62,7 +63,7 @@ module.exports = ArduinoUpload =
 				if data.toString().strip() == "exit status 1"
 					dispError = false
 				if dispError
-					output.addLine data.toString()
+					output.addLine data.toString(), workpath
 				if data.toString().strip() == "Verifying..."
 					dispError = true
 			stdoutput.on 'close', (code) ->
@@ -77,8 +78,9 @@ module.exports = ArduinoUpload =
 		file?.pop()
 		name = file?.pop()
 		file?.push name
+		workpath = file?.join '/'
 		file?.push name+".ino"
-		file = file?.join("/")
+		file = file?.join "/"
 		dispError = false
 		uploading = false
 		output.reset()
@@ -94,7 +96,7 @@ module.exports = ArduinoUpload =
 					uploading = true
 					atom.notifications.addInfo 'Uploading sketch...'
 				else if dispError && !uploading
-					output.addLine data.toString()
+					output.addLine data.toString(), workpath
 				else if data.toString().strip() == "Verifying and uploading..."
 					dispError = true
 			
@@ -158,10 +160,9 @@ module.exports = ArduinoUpload =
 			serialeditor = editor
 			@openserialport()
 	closeserial: ->
-		if serial!=null
-			serial?.close (err) ->
-				return
+		serial?.close (err) ->
+			return
 		serial = null
-		if serialeditor!=null
-			serialeditor?.destroy()
+		
+		serialeditor?.destroy()
 		serialeditor = null
