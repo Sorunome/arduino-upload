@@ -45,8 +45,19 @@ module.exports =
 				@hide()
 				return
 			@find('pre').html @message
+			
 			for elem in @find('pre a')
 				elem.addEventListener 'click', ->
+					for pane in atom.workspace.getPanes()
+						for editor in pane.getItems()
+							console.log editor
+							if editor.getPath() == @dataset.file
+								pane.activateItem(editor)
+								if @dataset.line != -1
+									editor.setCursorBufferPosition [@dataset.line - 1,0]
+									editor.scrollToCursorPosition() # center the cursor
+								pane.activate()
+								return
 					atom.workspace.open(@dataset.file).then (editor) =>
 						if @dataset.line != -1
 							editor.setCursorBufferPosition [@dataset.line - 1,0]

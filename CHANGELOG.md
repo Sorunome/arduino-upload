@@ -1,3 +1,6 @@
+## 0.3.1
+* files when clicked on in error output are now activated even in other pane
+
 ## 0.3.0
 * Filenames in error output are now clickable, also jumps to line
 

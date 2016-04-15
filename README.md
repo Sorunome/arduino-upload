@@ -6,3 +6,4 @@ Did you not like the look of the arduino IDE but were stuck with it nevertheless
 * Upload a sketch
 * Serial Monitor
 * Error output when compiling
+* Files are clickable in build output --> cursor jumps to that line in that file
