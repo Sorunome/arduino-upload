@@ -2,7 +2,7 @@
   "name": "arduino-upload",
   "main": "./lib/arduino-upload",
   "version": "0.1.0",
-  "description": "A short description of your package",
+  "description": "Upload your arduino sketches without using the IDE",
   "keywords": [
     "arduino",
     "upload",
