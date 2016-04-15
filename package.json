@@ -1,18 +1,18 @@
 {
   "name": "arduino-upload",
   "main": "./lib/arduino-upload",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A short description of your package",
   "keywords": [
-      "arduino",
-      "upload",
-      "sketch"
+    "arduino",
+    "upload",
+    "sketch"
   ],
   "activationCommands": {
-      "atom-workspace": [
-          "arduino-upload:upload",
-          "arduino-upload:build"
-      ]
+    "atom-workspace": [
+      "arduino-upload:upload",
+      "arduino-upload:build"
+    ]
   },
   "repository": "https://github.com/Sorunome/arduino-upload",
   "license": "MIT",
@@ -20,6 +20,6 @@
     "atom": ">=1.0.0 <2.0.0"
   },
   "dependencies": {
-      "atom-space-pen-views": "^2.0.3"
+    "atom-space-pen-views": "^2.0.3"
   }
 }
