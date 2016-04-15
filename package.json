@@ -11,7 +11,8 @@
   "activationCommands": {
     "atom-workspace": [
       "arduino-upload:upload",
-      "arduino-upload:build"
+      "arduino-upload:build",
+      "arduino-upload:serial-monitor"
     ]
   },
   "repository": "https://github.com/Sorunome/arduino-upload",
@@ -20,6 +21,7 @@
     "atom": ">=1.0.0 <2.0.0"
   },
   "dependencies": {
-    "atom-space-pen-views": "^2.0.3"
+    "atom-space-pen-views": "^2.0.3",
+    "serialport": ">=2.1.0"
   }
 }

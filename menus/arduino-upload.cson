@@ -12,6 +12,10 @@
 				{
 					'label': 'Upload'
 					'command': 'arduino-upload:upload'
+				},
+				{
+					'label': 'Serial Monitor'
+					'command': 'arduino-upload:serial-monitor'
 				}
 			]
 		]
