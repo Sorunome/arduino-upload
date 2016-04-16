@@ -50,7 +50,6 @@ module.exports =
 				elem.addEventListener 'click', ->
 					for pane in atom.workspace.getPanes()
 						for editor in pane.getItems()
-							console.log editor
 							if editor.getPath() == @dataset.file
 								pane.activateItem(editor)
 								if @dataset.line != -1

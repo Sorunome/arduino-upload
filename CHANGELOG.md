@@ -1,3 +1,7 @@
+## 0.4.0
+* Port to upload to is now determined by this package instead of the IDE
+* Made boards configurable
+
 ## 0.3.1
 * files when clicked on in error output are now activated even in other pane
 

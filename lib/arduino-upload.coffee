@@ -19,6 +19,9 @@ module.exports = ArduinoUpload =
 		baudRate:
 			type: 'number'
 			default: '9600'
+		board:
+			type: 'string'
+			default: ''
 
 	activate: (state) ->
 		# Setup to use the new composite disposables API for registering commands
@@ -53,7 +56,11 @@ module.exports = ArduinoUpload =
 		dispError = false
 		output.reset()
 		if fs.existsSync(file)
-			stdoutput = spawn atom.config.get('arduino-upload.arduinoExecutablePath'), [file,'--verify']
+			options = [file,'--verify']
+			if atom.config.get('arduino-upload.board') != ''
+				options.push '--board'
+				options.push atom.config.get('arduino-upload.board')
+			stdoutput = spawn atom.config.get('arduino-upload.arduinoExecutablePath'), options
 			
 			stdoutput.stdout.on 'data', (data) ->
 				if data.toString().strip().indexOf 'Sketch' == 0 || data.toString().strip().indexOf 'Global' == 0
@@ -85,30 +92,38 @@ module.exports = ArduinoUpload =
 		uploading = false
 		output.reset()
 		if fs.existsSync(file)
-			stdoutput = spawn atom.config.get('arduino-upload.arduinoExecutablePath'), [file,'-v','--upload']
-			
-			stdoutput.stdout.on 'data', (data) ->
-				if data.toString().strip().indexOf('Sketch') == 0 || data.toString().strip().indexOf('Global') == 0
-					atom.notifications.addInfo data.toString()
-			
-			stdoutput.stderr.on 'data', (data) ->
-				if data.toString().strip().indexOf("avrdude:") == 0 && !uploading
-					uploading = true
-					atom.notifications.addInfo 'Uploading sketch...'
-				else if dispError && !uploading
-					output.addLine data.toString(), workpath
-				else if data.toString().strip() == "Verifying and uploading..."
-					dispError = true
-			
-			stdoutput.on 'close', (code) ->
-				output.finish()
-				if code == 0
-					atom.notifications.addInfo 'Successfully uploaded sketch'
-				else
-					if uploading
-						atom.notifications.addError "Couldn't upload to board, is it connected?"
+			@getPort (port) =>
+				if port == ''
+					atom.notifications.addError 'No arduino connected'
+					return
+				options = [file,'-v','--upload','--port',port]
+				if atom.config.get('arduino-upload.board') != ''
+					options.push '--board'
+					options.push atom.config.get('arduino-upload.board')
+				stdoutput = spawn atom.config.get('arduino-upload.arduinoExecutablePath'), options
+				
+				stdoutput.stdout.on 'data', (data) ->
+					if data.toString().strip().indexOf('Sketch') == 0 || data.toString().strip().indexOf('Global') == 0
+						atom.notifications.addInfo data.toString()
+				
+				stdoutput.stderr.on 'data', (data) ->
+					if data.toString().strip().indexOf("avrdude:") == 0 && !uploading
+						uploading = true
+						atom.notifications.addInfo 'Uploading sketch...'
+					else if dispError && !uploading
+						output.addLine data.toString(), workpath
+					else if data.toString().strip() == "Verifying and uploading..."
+						dispError = true
+				
+				stdoutput.on 'close', (code) ->
+					output.finish()
+					if code == 0
+						atom.notifications.addInfo 'Successfully uploaded sketch'
 					else
-						atom.notifications.addError 'Build failed'
+						if uploading
+							atom.notifications.addError "Couldn't upload to board, is it connected?"
+						else
+							atom.notifications.addError 'Build failed'
 		else
 			atom.notifications.addError "File isn't part of an Arduino sketch!"
 	isArduino: (port) ->
@@ -118,22 +133,26 @@ module.exports = ArduinoUpload =
 		if port.vendorId == '0x0403' || port.vendorId == '0x2341'
 			return true
 		return false
-	openserialport: ->
-		if serial!=null
-			atom.notifications.addInfo 'wut, serial open?'
-			return
+	getPort: (callback) ->
 		p = ''
 		serialport.list (err,ports) =>
 			for port in ports
 				if @isArduino(port)
 					p = port.comName
-			
-			if p == ''
+					break
+			callback p
+	openserialport: ->
+		if serial!=null
+			atom.notifications.addInfo 'wut, serial open?'
+			return
+		p = ''
+		@getPort (port) =>
+			if port == ''
 				atom.notifications.addError 'No Arduino found!'
 				@closeserial()
 				return
 			
-			serial = new serialport.SerialPort p, {
+			serial = new serialport.SerialPort port, {
 					baudRate: atom.config.get('arduino-upload.baudRate')
 					parser: serialport.parsers.readline "\n"
 				}
