@@ -6,6 +6,10 @@
 			'label': 'Arduino Upload'
 			'submenu': [
 				{
+					'label': 'Verify'
+					'command': 'arduino-upload:verify'
+				},
+				{
 					'label': 'Build'
 					'command': 'arduino-upload:build'
 				},

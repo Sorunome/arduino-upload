@@ -1,3 +1,7 @@
+## 0.4.1
+* Added verification
+* Building now copies .hex, .elf and .eep to sketch directory
+
 ## 0.4.0
 * Port to upload to is now determined by this package instead of the IDE
 * Made boards configurable

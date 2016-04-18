@@ -11,6 +11,16 @@ output = null
 serial = null
 serialeditor = null
 
+removeDir = (dir) ->
+	if fs.existsSync dir
+		for file in fs.readdirSync dir
+			path = dir + '/' + file
+			if fs.lstatSync(path).isDirectory()
+				removeDir path
+			else
+				fs.unlinkSync path
+			
+		fs.rmdirSync dir
 module.exports = ArduinoUpload =
 	config:
 		arduinoExecutablePath:
@@ -27,7 +37,9 @@ module.exports = ArduinoUpload =
 		# Setup to use the new composite disposables API for registering commands
 		@subscriptions = new CompositeDisposable
 		@subscriptions.add atom.commands.add "atom-workspace",
-			'arduino-upload:build': => @build()
+			'arduino-upload:verify': => @build(false)
+		@subscriptions.add atom.commands.add "atom-workspace",
+			'arduino-upload:build': => @build(true)
 		@subscriptions.add atom.commands.add "atom-workspace",
 			'arduino-upload:upload': => @upload()
 		@subscriptions.add atom.commands.add "atom-workspace",
@@ -44,26 +56,35 @@ module.exports = ArduinoUpload =
 		output?.remove()
 		@closeserial()
 
-	build: ->
+	build: (keep) ->
 		editor = atom.workspace.getActivePaneItem()
 		file = editor?.buffer?.file?.getPath()?.split "/"
 		file?.pop()
 		name = file?.pop()
 		file?.push name
 		workpath = file?.join '/'
-		file?.push name+".ino"
-		file = file?.join "/"
+		name += '.ino'
+		file?.push name
+		file = file?.join '/'
 		dispError = false
 		output.reset()
-		if fs.existsSync(file)
+		if fs.existsSync file
 			options = [file,'--verify']
 			if atom.config.get('arduino-upload.board') != ''
 				options.push '--board'
 				options.push atom.config.get('arduino-upload.board')
+			if keep
+				options.push '-v'
+				options.push '--preserve-temp-files'
 			stdoutput = spawn atom.config.get('arduino-upload.arduinoExecutablePath'), options
-			
+			buildpath = ''
 			stdoutput.stdout.on 'data', (data) ->
-				if data.toString().strip().indexOf 'Sketch' == 0 || data.toString().strip().indexOf 'Global' == 0
+				if keep
+					s = data.toString().replace ///.*"([\/\w\-:\.]+)#{name}\.eep".*///, '$1'
+					if s && s!=data.toString()
+						buildpath = s
+				
+				if data.toString().strip().indexOf('Sketch') == 0 || data.toString().strip().indexOf('Global') == 0
 					atom.notifications.addInfo data.toString()
 			
 			stdoutput.stderr.on 'data', (data) ->
@@ -76,6 +97,14 @@ module.exports = ArduinoUpload =
 			stdoutput.on 'close', (code) ->
 				if code != 0
 					atom.notifications.addError 'Build failed'
+				else if keep && buildpath!=''
+					buildpath = buildpath.strip()
+					
+					for ending in ['.eep','.elf','.hex']
+						console.log buildpath+name+ending
+						fs.createReadStream(buildpath+name+ending).pipe(fs.createWriteStream(workpath+'/'+name+ending))
+					removeDir(buildpath)
+					
 				output.finish()
 		else
 			atom.notifications.addError "File isn't part of an Arduino sketch!"
@@ -127,7 +156,6 @@ module.exports = ArduinoUpload =
 		else
 			atom.notifications.addError "File isn't part of an Arduino sketch!"
 	isArduino: (port) ->
-		console.log port
 		if port.manufacturer == 'FTDI'
 			return true
 		if port.vendorId == '0x0403' || port.vendorId == '0x2341'

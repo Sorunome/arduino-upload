@@ -14,6 +14,7 @@
     "atom-workspace": [
       "arduino-upload:upload",
       "arduino-upload:build",
+      "arduino-upload:verify",
       "arduino-upload:serial-monitor"
     ]
   },
