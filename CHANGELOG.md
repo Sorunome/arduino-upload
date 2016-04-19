@@ -1,4 +1,4 @@
-## 0.4.1
+## 0.5.0
 * Added verification
 * Building now copies .hex, .elf and .eep to sketch directory
 
