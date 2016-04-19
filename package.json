@@ -1,7 +1,7 @@
 {
   "name": "arduino-upload",
   "main": "./lib/arduino-upload",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Upload your arduino sketches without using the IDE",
   "keywords": [
     "arduino",
@@ -27,6 +27,6 @@
     "atom-space-pen-views": "^2.0.3"
   },
   "scripts": {
-      "install": "npm install serialport --runtime=electron"
+    "install": "npm install serialport --runtime=electron"
   }
 }
