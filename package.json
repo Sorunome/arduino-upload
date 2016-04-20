@@ -24,9 +24,7 @@
     "atom": ">=1.0.0 <2.0.0"
   },
   "dependencies": {
-    "atom-space-pen-views": "^2.0.3"
-  },
-  "scripts": {
-    "install": "npm install serialport --runtime=electron"
+    "atom-space-pen-views": "^2.0.3",
+    "serialport": "git+https://github.com/voodootikigod/node-serialport.git"
   }
 }
