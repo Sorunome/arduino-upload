@@ -24,12 +24,18 @@ removeDir = (dir) ->
 module.exports = ArduinoUpload =
 	config:
 		arduinoExecutablePath:
+			title: 'Arduino Executable Path'
+			description: 'The location of the arduino IDE executable, your PATH is being searched, too'
 			type: 'string'
 			default: 'arduino'
 		baudRate:
+			title: 'BAUD Rate'
+			description: 'Sets the BAUD rate for the serial monitor, if you change it you need to close and open it manually'
 			type: 'number'
 			default: '9600'
 		board:
+			title: 'Arduino board'
+			description: 'If kept blank, it will take the settings from the arduino IDE. The board uses the pattern as described <a href="https://github.com/arduino/Arduino/blob/ide-1.5.x/build/shared/manpage.adoc#options">here</a>'
 			type: 'string'
 			default: ''
 
