@@ -7,3 +7,70 @@
 .arduino-upload > pre {
 	max-height:200pt;
 }
+/* copied from https://github.com/atom/atom/blob/master/static/buttons.less */
+.editor::shadow .arduino-upload-serial button {
+	color: @text-color;
+	border-radius: @component-border-radius;
+	border: none;
+	text-shadow: none;
+
+	height: @component-line-height + 2px;
+	line-height: @component-line-height;
+
+	padding: 0 @component-padding;
+	font-size: @font-size;
+	z-index: 0;
+
+	background-color: @button-background-color;
+	&:hover {
+		background-color: @button-background-color-hover;
+	}
+	&.selected,
+	&.selected:hover {
+		// we want the selected button to behave like the :hover button; it's on top of the other buttons.
+		z-index: 1;
+		background-color: @button-background-color-selected;
+	}
+}
+.editor::shadow .arduino-upload-serial select {
+	color: @text-color;
+	border-radius: @component-border-radius;
+	border: none;
+	text-shadow: none;
+	
+	height: @component-line-height + 2px;
+	line-height: @component-line-height;
+	
+	padding: 0 @component-padding;
+	font-size: @font-size;
+	z-index: 0;
+	
+	background-color: @button-background-color;
+	&:hover {
+		background-color: @button-background-color-hover;
+	}
+	&.selected,
+	&.selected:hover {
+		// we want the selected button to behave like the :hover button; it's on top of the other buttons.
+		z-index: 1;
+		background-color: @button-background-color-selected;
+	}
+}
+.editor::shadow .arduino-upload-serial #arduino-upload-serial-input {
+	color: @text-color;
+	border-color:@input-border-color;
+	border-radius: @component-border-radius;
+	border: none;
+	text-shadow: none;
+	
+	height: @component-line-height + 2px;
+	line-height: @component-line-height;
+	
+	padding: 0 @component-padding;
+	font-size: @font-size;
+	z-index: 0;
+	
+	background-color: @input-background-color;
+	
+	width: ~"calc(100% - 18em)"; // just tried out what looked OK
+}

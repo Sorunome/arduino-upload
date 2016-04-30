@@ -5,6 +5,7 @@ String::strip = -> if String::trim? then @trim() else @replace /^\s+|\s+$/g, ""
 fs = require 'fs'
 path = require 'path'
 OutputView = require './output-view'
+SerialView = require './serial-view'
 serialport = require 'serialport'
 
 output = null
@@ -38,6 +39,13 @@ module.exports = ArduinoUpload =
 			description: 'If kept blank, it will take the settings from the arduino IDE. The board uses the pattern as described <a href="https://github.com/arduino/Arduino/blob/ide-1.5.x/build/shared/manpage.adoc#options">here</a>'
 			type: 'string'
 			default: ''
+		lineEnding:
+			title: 'Default line ending in serial monitor'
+			description: '0 - No line ending<br>1 - Newline<br>2 - Carriage return<br>3 - Both NL &amp; CR'
+			type: 'integer'
+			default: 1
+			minimum: 0
+			maximum: 3
 
 	activate: (state) ->
 		# Setup to use the new composite disposables API for registering commands
@@ -188,7 +196,7 @@ module.exports = ArduinoUpload =
 			
 			serial = new serialport.SerialPort port, {
 					baudRate: atom.config.get('arduino-upload.baudRate')
-					parser: serialport.parsers.readline "\n"
+					parser: serialport.parsers.raw
 				}
 			
 			serial.on 'open', (data) =>
@@ -205,12 +213,12 @@ module.exports = ArduinoUpload =
 		if serial!=null
 			return
 		
-		atom.workspace.open('Serial Monitor').then (editor) =>
-			editor.setText ''
-			
-			editor.onDidDestroy =>
+		serialeditor = new SerialView
+		serialeditor.open =>
+			serialeditor.onDidDestroy =>
 				@closeserial()
-			serialeditor = editor
+			serialeditor.onSend (s) =>
+				serial?.write s
 			@openserialport()
 	closeserial: ->
 		serial?.close (err) ->

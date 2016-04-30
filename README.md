@@ -10,7 +10,7 @@ Did you not like the look of the arduino IDE but were stuck with it nevertheless
 * Files are clickable in build output --> cursor jumps to that line in that file
 
 ## Installation
-`apm install arduino-upload`
+`apm install arduino-upload`  
 If that fails, `cd ~/.atom/packages/arduino-upload`, then `npm install serialport` and `apm install`
 
 ## Available commands
