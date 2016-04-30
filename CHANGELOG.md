@@ -1,3 +1,6 @@
+## 0.6.0
+* Added serial sending
+
 ## 0.5.0
 * Added verification
 * Building now copies .hex, .elf and .eep to sketch directory
