@@ -25,6 +25,6 @@
   },
   "dependencies": {
     "atom-space-pen-views": "^2.0.3",
-    "serialport": "git+https://github.com/voodootikigod/node-serialport.git"
+    "serialport": ">=2.1.0"
   }
 }
