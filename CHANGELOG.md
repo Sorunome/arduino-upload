@@ -1,3 +1,6 @@
+## 0.7.0
+* commented out SerialPort until it is working via atom.... (node-pre-gyp issue....)
+
 ## 0.6.0
 * Added serial sending
 

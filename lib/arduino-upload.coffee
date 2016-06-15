@@ -6,7 +6,7 @@ fs = require 'fs'
 path = require 'path'
 OutputView = require './output-view'
 SerialView = require './serial-view'
-serialport = require 'serialport'
+serialport = null#require 'serialport'
 
 output = null
 serial = null
