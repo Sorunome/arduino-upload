@@ -1,7 +1,7 @@
 {
   "name": "arduino-upload",
   "main": "./lib/arduino-upload",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Upload your arduino sketches without using the IDE",
   "keywords": [
     "arduino",
