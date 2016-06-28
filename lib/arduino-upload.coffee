@@ -6,11 +6,21 @@ fs = require 'fs'
 path = require 'path'
 OutputView = require './output-view'
 SerialView = require './serial-view'
-serialport = null#require 'serialport'
+
+try
+	serialport = require 'serialport'
+catch e
+	console.log e
+	serialport = null
+
 
 output = null
 serial = null
 serialeditor = null
+
+seperator = '/'
+if /^win/.test process.platform
+	seperator = '\\'
 
 removeDir = (dir) ->
 	if fs.existsSync dir
@@ -72,14 +82,14 @@ module.exports = ArduinoUpload =
 
 	build: (keep) ->
 		editor = atom.workspace.getActivePaneItem()
-		file = editor?.buffer?.file?.getPath()?.split "/"
+		file = editor?.buffer?.file?.getPath()?.split seperator
 		file?.pop()
 		name = file?.pop()
 		file?.push name
-		workpath = file?.join '/'
+		workpath = file?.join seperator
 		name += '.ino'
 		file?.push name
-		file = file?.join '/'
+		file = file?.join seperator
 		dispError = false
 		output.reset()
 		if fs.existsSync file
@@ -94,7 +104,7 @@ module.exports = ArduinoUpload =
 			buildpath = ''
 			stdoutput.stdout.on 'data', (data) ->
 				if keep
-					s = data.toString().replace ///.*"([\/\w\-:\.]+)#{name}\.eep".*///, '$1'
+					s = data.toString().replace ///.*"([\\\/\w\-:\.]+)#{name}\.eep".*///, '$1'
 					if s && s!=data.toString()
 						buildpath = s
 				
@@ -116,7 +126,7 @@ module.exports = ArduinoUpload =
 					
 					for ending in ['.eep','.elf','.hex']
 						console.log buildpath+name+ending
-						fs.createReadStream(buildpath+name+ending).pipe(fs.createWriteStream(workpath+'/'+name+ending))
+						fs.createReadStream(buildpath+name+ending).pipe(fs.createWriteStream(workpath+seperator+name+ending))
 					removeDir(buildpath)
 					
 				output.finish()
@@ -124,13 +134,13 @@ module.exports = ArduinoUpload =
 			atom.notifications.addError "File isn't part of an Arduino sketch!"
 	upload: ->
 		editor = atom.workspace.getActivePaneItem()
-		file = editor?.buffer?.file?.getPath()?.split "/"
+		file = editor?.buffer?.file?.getPath()?.split seperator
 		file?.pop()
 		name = file?.pop()
 		file?.push name
-		workpath = file?.join '/'
+		workpath = file?.join seperator
 		file?.push name+".ino"
-		file = file?.join "/"
+		file = file?.join seperator
 		dispError = false
 		uploading = false
 		output.reset()
@@ -210,6 +220,9 @@ module.exports = ArduinoUpload =
 				@closeserial()
 				atom.notifications.addInfo 'error in serial connection'
 	openserial: ->
+		if serialport == null
+			atom.notifications.addInfo 'Serialport dependency not present, try installing it! (And, if you figure out how, please report me how <a href="https://github.com/Sorunome/arduino-upload/issues">here</a> as I don\'t know how to do it.....)'
+			return
 		if serial!=null
 			return
 		

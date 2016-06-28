@@ -1,3 +1,7 @@
+## 0.7.1
+* SerialPort is now an optional dependency, please figure out how to get it working...
+* Fixed windows support (I hope)
+
 ## 0.7.0
 * commented out SerialPort until it is working via atom.... (node-pre-gyp issue....)
 
