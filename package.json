@@ -1,7 +1,7 @@
 {
   "name": "arduino-upload",
   "main": "./lib/arduino-upload",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Upload your arduino sketches without using the IDE",
   "keywords": [
     "arduino",
@@ -25,7 +25,6 @@
   },
   "dependencies": {
     "atom-space-pen-views": ">=2.0.3"
-
   },
   "optionalDependencies": {
     "serialport": ">=3.1.2"
