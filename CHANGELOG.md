@@ -1,3 +1,8 @@
+## 1.0.0
+* First major release
+* Added screenshots to readme
+* Made serialport a hard dependency, works with atom 1.10
+
 ## 0.7.1
 * SerialPort is now an optional dependency, please figure out how to get it working...
 * Fixed windows support (I hope)
