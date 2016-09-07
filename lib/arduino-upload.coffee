@@ -187,6 +187,7 @@ module.exports = ArduinoUpload =
 		return false
 	getPort: (callback) ->
 		p = ''
+		#return '/dev/ttyUSB0'
 		serialport.list (err,ports) =>
 			for port in ports
 				if @isArduino(port)
