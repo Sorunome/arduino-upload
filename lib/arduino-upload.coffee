@@ -182,7 +182,8 @@ module.exports = ArduinoUpload =
 	isArduino: (port) ->
 		if port.manufacturer == 'FTDI'
 			return true
-		if port.vendorId == '0x0403' || port.vendorId == '0x2341' || port.vendorId == '0x2a03'
+		console.log port
+		if port.vendorId == '0x0403' || port.vendorId == '0x2341' || port.vendorId == '0x2a03' || (port.vendorId == '0x1a86' && port.productId == '0x7523')
 			return true
 		return false
 	getPort: (callback) ->
