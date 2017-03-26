@@ -127,7 +127,7 @@ module.exports = ArduinoUpload =
 					for ending in ['.eep','.elf','.hex']
 						console.log buildpath+name+ending
 						fs.createReadStream(buildpath+name+ending).pipe(fs.createWriteStream(workpath+seperator+name+ending))
-					removeDir(buildpath)
+					removeDir buildpath
 					
 				output.finish()
 		else
@@ -149,6 +149,7 @@ module.exports = ArduinoUpload =
 				if port == ''
 					atom.notifications.addError 'No arduino connected'
 					return
+				return
 				options = [file,'-v','--upload','--port',port]
 				if atom.config.get('arduino-upload.board') != ''
 					options.push '--board'
@@ -156,6 +157,7 @@ module.exports = ArduinoUpload =
 				stdoutput = spawn atom.config.get('arduino-upload.arduinoExecutablePath'), options
 				
 				stdoutput.stdout.on 'data', (data) ->
+					console.log data.toString()
 					if data.toString().strip().indexOf('Sketch') == 0 || data.toString().strip().indexOf('Global') == 0
 						atom.notifications.addInfo data.toString()
 				
@@ -179,19 +181,30 @@ module.exports = ArduinoUpload =
 							atom.notifications.addError 'Build failed'
 		else
 			atom.notifications.addError "File isn't part of an Arduino sketch!"
-	isArduino: (port) ->
-		if port.manufacturer == 'FTDI'
-			return true
-		console.log port
-		if port.vendorId == '0x0403' || port.vendorId == '0x2341' || port.vendorId == '0x2a03' || (port.vendorId == '0x1a86' && port.productId == '0x7523')
-			return true
+	isArduino: (vid, pid, vendors = false) ->
+		if !vendors
+			vendors = {
+				'0x2341': true # Arduino
+				'0x2a03': true # Arduino M0 Pro (perhaps other devices?)
+				'0x03eb': true # Atmel
+				# knockoff producers
+				'0x0403': [ '0x6001' ] # FTDI 
+				'0x1a86': [ '0x7523' ] # QuinHeng
+			}
+		for own v, p of vendors
+			if v == vid
+				if p && typeof p == 'boolean' 
+					return true
+				if -1 != p.indexOf pid
+					return true
 		return false
 	getPort: (callback) ->
 		p = ''
 		#return '/dev/ttyUSB0'
 		serialport.list (err,ports) =>
+			console.log ports
 			for port in ports
-				if @isArduino(port)
+				if @isArduino(port.vendorId, port.productId)
 					p = port.comName
 					break
 			callback p

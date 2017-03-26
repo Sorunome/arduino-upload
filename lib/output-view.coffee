@@ -40,6 +40,7 @@ module.exports =
 		reset: ->
 			@message = ''
 		finish: ->
+			console.log @message
 			if @message.trim() == ''
 				@message = ''
 				@hide()
