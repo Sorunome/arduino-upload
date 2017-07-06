@@ -6,6 +6,7 @@ fs = require 'fs'
 path = require 'path'
 OutputView = require './output-view'
 SerialView = require './serial-view'
+tmp = require 'tmp'
 
 try
 	serialport = require 'serialport'
@@ -70,6 +71,7 @@ module.exports = ArduinoUpload =
 	vendorsProgrammer: {
 		0x03eb: [ 0x2141 ] # Atmel ICE debugger
 	}
+	buildFolders: []
 	activate: (state) ->
 		# Setup to use the new composite disposables API for registering commands
 		@subscriptions = new CompositeDisposable
@@ -86,15 +88,15 @@ module.exports = ArduinoUpload =
 		atom.workspace.addBottomPanel(item:output)
 		output.hide()
 
-
-
 	deactivate: ->
+		for own s, f of @buildFolders
+			removeDir f
 		@subscriptions.dispose()
 		output?.remove()
 		@closeserial()
 	
 	additionalArduinoOptions: (path, port = false) ->
-		options = []
+		options = ['-v']
 		if atom.config.get('arduino-upload.board') != ''
 			options = options.concat ['--board', atom.config.get('arduino-upload.board')]
 		if typeof port != 'boolean'
@@ -102,6 +104,9 @@ module.exports = ArduinoUpload =
 				options.push '--useprogrammer'
 			else if port != 'ARDUINO'
 				options = options.concat ['--port', port]
+		if not @buildFolders[path]
+			@buildFolders[path] = tmp.dirSync().name
+		options = options.concat ['--pref', 'build.path='+@buildFolders[path]]
 		return options
 	build: (keep) ->
 		editor = atom.workspace.getActivePaneItem()
@@ -119,37 +124,27 @@ module.exports = ArduinoUpload =
 			atom.notifications.addInfo 'Start building...'
 			
 			options = [file, '--verify']
-			options = options.concat @additionalArduinoOptions file, port
-			if keep
-				options = options.concat ['-v', '--preserve-temp-files']
+			options = options.concat @additionalArduinoOptions file
+			
 			stdoutput = spawn atom.config.get('arduino-upload.arduinoExecutablePath'), options
-			buildpath = ''
-			stdoutput.stdout.on 'data', (data) ->
-				if keep
-					s = data.toString().replace ///.*"([\\\/\w\-:\.]+)#{name}\.eep".*///, '$1'
-					if s && s!=data.toString()
-						buildpath = s
-				
+			stdoutput.stdout.on 'data', (data) =>
 				if data.toString().strip().indexOf('Sketch') == 0 || data.toString().strip().indexOf('Global') == 0
 					atom.notifications.addInfo data.toString()
 			
-			stdoutput.stderr.on 'data', (data) ->
+			stdoutput.stderr.on 'data', (data) =>
 				if data.toString().strip() == "exit status 1"
 					dispError = false
 				if dispError
 					output.addLine data.toString(), workpath
 				if data.toString().strip() == "Verifying..."
 					dispError = true
-			stdoutput.on 'close', (code) ->
+			stdoutput.on 'close', (code) =>
+				
 				if code != 0
 					atom.notifications.addError 'Build failed'
-				else if keep && buildpath!=''
-					buildpath = buildpath.strip()
-					
+				else if keep
 					for ending in ['.eep','.elf','.hex']
-						console.log buildpath+name+ending
-						fs.createReadStream(buildpath+name+ending).pipe(fs.createWriteStream(workpath+seperator+name+ending))
-					removeDir buildpath
+						fs.createReadStream(@buildFolders[file]+name+ending).pipe(fs.createWriteStream(workpath+seperator+name+ending))
 					
 				output.finish()
 		else
@@ -176,15 +171,14 @@ module.exports = ArduinoUpload =
 				
 				options = [file, '-v', '--upload']
 				options = options.concat @additionalArduinoOptions file, port
-				console.log options
 				
 				stdoutput = spawn atom.config.get('arduino-upload.arduinoExecutablePath'), options
 				
-				stdoutput.stdout.on 'data', (data) ->
+				stdoutput.stdout.on 'data', (data) =>
 					if data.toString().strip().indexOf('Sketch') == 0 || data.toString().strip().indexOf('Global') == 0
 						atom.notifications.addInfo data.toString()
 				
-				stdoutput.stderr.on 'data', (data) ->
+				stdoutput.stderr.on 'data', (data) =>
 					if data.toString().strip().indexOf("avrdude:") == 0 && !uploading
 						uploading = true
 						atom.notifications.addInfo 'Uploading sketch...'
@@ -193,12 +187,11 @@ module.exports = ArduinoUpload =
 					else if data.toString().strip() == "Verifying and uploading..."
 						dispError = true
 				
-				stdoutput.on 'close', (code) ->
+				stdoutput.on 'close', (code) =>
 					output.finish()
 					if code == 0
 						atom.notifications.addInfo 'Successfully uploaded sketch'
 					else
-						console.log code
 						if uploading
 							atom.notifications.addError "Couldn't upload to board, is it connected?"
 						else
