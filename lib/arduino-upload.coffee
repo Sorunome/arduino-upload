@@ -10,9 +10,11 @@ SerialView = require './serial-view'
 try
 	serialport = require 'serialport'
 catch e
-	console.log e
 	serialport = null
-
+try
+	usbDetect = require 'usb-detection'
+catch e
+	usbDetect = null
 
 output = null
 serial = null
@@ -56,7 +58,18 @@ module.exports = ArduinoUpload =
 			default: 1
 			minimum: 0
 			maximum: 3
-
+	vendorsArduino: {
+		0x2341: true # Arduino
+		0x2a03: true # Arduino M0 Pro (perhaps other devices?)
+		0x03eb: true # Atmel
+		# knockoff producers
+		0x0403: [ 0x6001 ] # FTDI 
+		0x1a86: [ 0x7523 ] # QuinHeng
+		0x0403: [ 0x6001 ] # Future Technology Devices International, Ltd
+	}
+	vendorsProgrammer: {
+		0x03eb: [ 0x2141 ] # Atmel ICE debugger
+	}
 	activate: (state) ->
 		# Setup to use the new composite disposables API for registering commands
 		@subscriptions = new CompositeDisposable
@@ -79,7 +92,17 @@ module.exports = ArduinoUpload =
 		@subscriptions.dispose()
 		output?.remove()
 		@closeserial()
-
+	
+	additionalArduinoOptions: (path, port = false) ->
+		options = []
+		if atom.config.get('arduino-upload.board') != ''
+			options = options.concat ['--board', atom.config.get('arduino-upload.board')]
+		if typeof port != 'boolean'
+			if port == 'PROGRAMMER'
+				options.push '--useprogrammer'
+			else if port != 'ARDUINO'
+				options = options.concat ['--port', port]
+		return options
 	build: (keep) ->
 		editor = atom.workspace.getActivePaneItem()
 		file = editor?.buffer?.file?.getPath()?.split seperator
@@ -93,13 +116,12 @@ module.exports = ArduinoUpload =
 		dispError = false
 		output.reset()
 		if fs.existsSync file
-			options = [file,'--verify']
-			if atom.config.get('arduino-upload.board') != ''
-				options.push '--board'
-				options.push atom.config.get('arduino-upload.board')
+			atom.notifications.addInfo 'Start building...'
+			
+			options = [file, '--verify']
+			options = options.concat @additionalArduinoOptions file, port
 			if keep
-				options.push '-v'
-				options.push '--preserve-temp-files'
+				options = options.concat ['-v', '--preserve-temp-files']
 			stdoutput = spawn atom.config.get('arduino-upload.arduinoExecutablePath'), options
 			buildpath = ''
 			stdoutput.stdout.on 'data', (data) ->
@@ -149,15 +171,16 @@ module.exports = ArduinoUpload =
 				if port == ''
 					atom.notifications.addError 'No arduino connected'
 					return
-				return
-				options = [file,'-v','--upload','--port',port]
-				if atom.config.get('arduino-upload.board') != ''
-					options.push '--board'
-					options.push atom.config.get('arduino-upload.board')
+				
+				atom.notifications.addInfo 'Start building...'
+				
+				options = [file, '-v', '--upload']
+				options = options.concat @additionalArduinoOptions file, port
+				console.log options
+				
 				stdoutput = spawn atom.config.get('arduino-upload.arduinoExecutablePath'), options
 				
 				stdoutput.stdout.on 'data', (data) ->
-					console.log data.toString()
 					if data.toString().strip().indexOf('Sketch') == 0 || data.toString().strip().indexOf('Global') == 0
 						atom.notifications.addInfo data.toString()
 				
@@ -175,6 +198,7 @@ module.exports = ArduinoUpload =
 					if code == 0
 						atom.notifications.addInfo 'Successfully uploaded sketch'
 					else
+						console.log code
 						if uploading
 							atom.notifications.addError "Couldn't upload to board, is it connected?"
 						else
@@ -182,39 +206,52 @@ module.exports = ArduinoUpload =
 		else
 			atom.notifications.addError "File isn't part of an Arduino sketch!"
 	isArduino: (vid, pid, vendors = false) ->
+		vid = parseInt vid
+		pid = parseInt pid
 		if !vendors
-			vendors = {
-				'0x2341': true # Arduino
-				'0x2a03': true # Arduino M0 Pro (perhaps other devices?)
-				'0x03eb': true # Atmel
-				# knockoff producers
-				'0x0403': [ '0x6001' ] # FTDI 
-				'0x1a86': [ '0x7523' ] # QuinHeng
-			}
+			vendors = @vendorsArduino
 		for own v, p of vendors
-			if v == vid
+			if vid == parseInt v
 				if p && typeof p == 'boolean' 
 					return true
 				if -1 != p.indexOf pid
 					return true
 		return false
-	getPort: (callback) ->
-		p = ''
-		#return '/dev/ttyUSB0'
-		serialport.list (err,ports) =>
-			console.log ports
+	_getPort: (callback) ->
+		serialport.list (err, ports) =>
+			p = ''
 			for port in ports
 				if @isArduino(port.vendorId, port.productId)
 					p = port.comName
 					break
 			callback p
+	getPort: (callback) ->
+		if serialport == null and usbDetect == null
+			callback 'ARDUINO'
+			return
+		if usbDetect == null
+			@_getPort callback
+			return
+		usbDetect.find (err, ports) =>
+			for port in ports
+				if @isArduino(port.vendorId, port.productId, @vendorsProgrammer)
+					callback 'PROGRAMMER'
+					return
+			if serialport == null
+				callback 'ARDUINO'
+				return
+			@_getPort callback
 	openserialport: ->
 		if serial!=null
 			atom.notifications.addInfo 'wut, serial open?'
 			return
 		p = ''
 		@getPort (port) =>
-			if port == ''
+			if port == 'PROGRAMMER'
+				atom.notifications.addError 'Can\'t use a programmer as serial monitor!'
+				@closeserial()
+				return
+			if port == '' or port == 'ARDUINO'
 				atom.notifications.addError 'No Arduino found!'
 				@closeserial()
 				return
@@ -236,7 +273,7 @@ module.exports = ArduinoUpload =
 				atom.notifications.addInfo 'error in serial connection'
 	openserial: ->
 		if serialport == null
-			atom.notifications.addInfo 'Serialport dependency not present, try installing it! (And, if you figure out how, please report me how <a href="https://github.com/Sorunome/arduino-upload/issues">here</a> as I don\'t know how to do it.....)'
+			atom.notifications.addInfo 'Serialport dependency not present, try installing it! (And, if you figure out how, please report me how <a href="https://github.com/Sorunome/arduino-upload/issues">here</a> as I don\'t know how to do it..... Really, <b>please</b> help me! D: )'
 			return
 		if serial!=null
 			return

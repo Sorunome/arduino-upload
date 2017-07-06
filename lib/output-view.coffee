@@ -52,7 +52,7 @@ module.exports =
 					for pane in atom.workspace.getPanes()
 						for editor in pane.getItems()
 							if editor.getPath() == @dataset.file
-								pane.activateItem(editor)
+								pane.activateItem editor
 								if @dataset.line != -1
 									editor.setCursorBufferPosition [@dataset.line - 1,0]
 									editor.scrollToCursorPosition() # center the cursor
