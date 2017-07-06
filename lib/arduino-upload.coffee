@@ -122,7 +122,7 @@ module.exports = ArduinoUpload =
 		output.reset()
 		if not fs.existsSync file
 			atom.notifications.addError "File isn't part of an Arduino sketch!"
-			callback (false)
+			callback false
 			return
 		atom.notifications.addInfo 'Start building...'
 		
@@ -154,33 +154,43 @@ module.exports = ArduinoUpload =
 			output.finish()
 	build: (keep) ->
 		@_build ['--verify'], (code, info) =>
-			if code != 0
-				atom.notifications.addError 'Build failed'
-			else if keep
-				for ending in ['.eep','.elf','.hex']
-					fs.createReadStream(info.buildFolder + info.name + ending).pipe(fs.createWriteStream(info.workpath + seperator + info.name + ending))
+			if code != false
+				if code != 0
+					atom.notifications.addError 'Build failed'
+				else if keep
+					for ending in ['.eep','.elf','.hex']
+						fs.createReadStream(info.buildFolder + info.name + ending).pipe(fs.createWriteStream(info.workpath + seperator + info.name + ending))
 		
 	upload: ->
-		callback = (code, info) =>
-			if code == 0
-				atom.notifications.addInfo 'Successfully uploaded sketch'
-			else
-				if uploading
-					atom.notifications.addError "Couldn't upload to board, is it connected?"
-				else
-					atom.notifications.addError 'Build failed'
-		uploading = false
-		onerror = (data) =>
-			s = data.toString().strip()
-			if (s.indexOf("avrdude:") == 0 || s.indexOf("Uploading...") == 0) && !uploading
-				uploading = true
-				atom.notifications.addInfo 'Uploading sketch...'
-			return uploading
 		@getPort (port) =>
 			if port == ''
 				atom.notifications.addError 'No arduino connected'
 				return
-			@_build ['--upload'], callback, onerror, port
+			callback = (code, info) =>
+				if code != false
+					if code == 0
+						atom.notifications.addInfo 'Successfully uploaded sketch'
+					else
+						if uploading
+							atom.notifications.addError "Couldn't upload to board, is it connected?"
+						else
+							atom.notifications.addError 'Build failed'
+				if serial != null
+					@_openserialport port, false
+			uploading = false
+			onerror = (data) =>
+				s = data.toString().strip()
+				if (s.indexOf("avrdude:") == 0 || s.indexOf("Uploading...") == 0) && !uploading
+					uploading = true
+					atom.notifications.addInfo 'Uploading sketch...'
+				return uploading
+			if serial == null
+				# no serial connection open to halt
+				@_build ['--upload'], callback, onerror, port
+				return
+			@serialNormalClose = false
+			serial.close (err) =>
+				@_build ['--upload'], callback, onerror, port
 	isArduino: (vid, pid, vendors = false) ->
 		vid = parseInt vid
 		pid = parseInt pid
@@ -217,6 +227,30 @@ module.exports = ArduinoUpload =
 				callback 'ARDUINO'
 				return
 			@_getPort callback
+	serialNormalClose: true
+	_openserialport: (port, start = true)->
+		try
+			serial = new serialport.SerialPort port, {
+					baudRate: atom.config.get('arduino-upload.baudRate')
+					parser: serialport.parsers.raw
+				}
+			@serialNormalClose = true
+			serial.on 'open', (data) =>
+				if start
+					atom.notifications.addInfo 'new serial connection'
+			serial.on 'data', (data) =>
+				serialeditor?.insertText data
+			serial.on 'close', (data) =>
+				if @serialNormalClose
+					@closeserial()
+					atom.notifications.addInfo 'Serial connection closed'
+			serial.on 'error', (data) =>
+				console.log data
+				@closeserial()
+				atom.notifications.addInfo 'error in serial connection'
+		catch e
+			@closeserial()
+			atom.notifications.addError e
 	openserialport: ->
 		if serial!=null
 			atom.notifications.addInfo 'wut, serial open?'
@@ -232,21 +266,7 @@ module.exports = ArduinoUpload =
 				@closeserial()
 				return
 			
-			serial = new serialport.SerialPort port, {
-					baudRate: atom.config.get('arduino-upload.baudRate')
-					parser: serialport.parsers.raw
-				}
-			
-			serial.on 'open', (data) =>
-				atom.notifications.addInfo 'new serial connection'
-			serial.on 'data', (data) =>
-				serialeditor?.insertText data
-			serial.on 'close', (data) =>
-				@closeserial()
-				atom.notifications.addInfo 'Serial connection closed'
-			serial.on 'error', (data) =>
-				@closeserial()
-				atom.notifications.addInfo 'error in serial connection'
+			@_openserialport(port)
 	openserial: ->
 		if serialport == null
 			atom.notifications.addInfo 'Serialport dependency not present, try installing it! (And, if you figure out how, please report me how <a href="https://github.com/Sorunome/arduino-upload/issues">here</a> as I don\'t know how to do it..... Really, <b>please</b> help me! D: )'

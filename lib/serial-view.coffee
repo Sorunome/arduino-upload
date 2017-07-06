@@ -50,4 +50,5 @@ module.exports =
 		insertText: (s) ->
 			if s instanceof Uint8Array
 				s = new TextDecoder('utf-8').decode s
+			console.log s
 			@editor?.insertText s
