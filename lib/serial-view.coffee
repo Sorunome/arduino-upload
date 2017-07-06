@@ -19,7 +19,7 @@ module.exports =
 		open: (callback) ->
 			atom.workspace.open('Serial Monitor').then (@editor) =>
 				@editor.setText ''
-				@editorView = atom.views.getView(@editor).shadowRoot.querySelector '.editor--private'
+				@editorView = atom.views.getView(@editor).querySelector '.editor--private'
 				
 				div = document.createElement 'div'
 				div.className = 'arduino-upload-serial'
