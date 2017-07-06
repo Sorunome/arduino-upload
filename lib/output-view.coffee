@@ -40,7 +40,6 @@ module.exports =
 		reset: ->
 			@message = ''
 		finish: ->
-			console.log @message
 			if @message.trim() == ''
 				@message = ''
 				@hide()
@@ -51,7 +50,7 @@ module.exports =
 				elem.addEventListener 'click', ->
 					for pane in atom.workspace.getPanes()
 						for editor in pane.getItems()
-							if editor.getPath() == @dataset.file
+							if editor.getPath && editor.getPath() == @dataset.file
 								pane.activateItem editor
 								if @dataset.line != -1
 									editor.setCursorBufferPosition [@dataset.line - 1,0]

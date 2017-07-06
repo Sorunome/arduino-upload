@@ -108,7 +108,7 @@ module.exports = ArduinoUpload =
 			@buildFolders[path] = tmp.dirSync().name
 		options = options.concat ['--pref', 'build.path='+@buildFolders[path]]
 		return options
-	build: (keep) ->
+	_build: (options, callback, onerror, port = false) ->
 		editor = atom.workspace.getActivePaneItem()
 		file = editor?.buffer?.file?.getPath()?.split seperator
 		file?.pop()
@@ -120,84 +120,67 @@ module.exports = ArduinoUpload =
 		file = file?.join seperator
 		dispError = false
 		output.reset()
-		if fs.existsSync file
-			atom.notifications.addInfo 'Start building...'
-			
-			options = [file, '--verify']
-			options = options.concat @additionalArduinoOptions file
-			
-			stdoutput = spawn atom.config.get('arduino-upload.arduinoExecutablePath'), options
-			stdoutput.stdout.on 'data', (data) =>
-				if data.toString().strip().indexOf('Sketch') == 0 || data.toString().strip().indexOf('Global') == 0
-					atom.notifications.addInfo data.toString()
-			
-			stdoutput.stderr.on 'data', (data) =>
-				if data.toString().strip() == "exit status 1"
-					dispError = false
-				if dispError
-					output.addLine data.toString(), workpath
-				if data.toString().strip() == "Verifying..."
-					dispError = true
-			stdoutput.on 'close', (code) =>
-				
-				if code != 0
-					atom.notifications.addError 'Build failed'
-				else if keep
-					for ending in ['.eep','.elf','.hex']
-						fs.createReadStream(@buildFolders[file]+name+ending).pipe(fs.createWriteStream(workpath+seperator+name+ending))
-					
-				output.finish()
-		else
+		if not fs.existsSync file
 			atom.notifications.addError "File isn't part of an Arduino sketch!"
+			callback (false)
+			return
+		atom.notifications.addInfo 'Start building...'
+		
+		options = [file].concat(options).concat @additionalArduinoOptions file, port
+		
+		stdoutput = spawn atom.config.get('arduino-upload.arduinoExecutablePath'), options
+		stdoutput.stdout.on 'data', (data) =>
+			if data.toString().strip().indexOf('Sketch') == 0 || data.toString().strip().indexOf('Global') == 0
+				atom.notifications.addInfo data.toString()
+		
+		stdoutput.stderr.on 'data', (data) =>
+			overrideError = false
+			if onerror
+				overrideError = onerror(data)
+			if data.toString().strip() == "exit status 1"
+				dispError = false
+			if dispError && !overrideError
+				console.log data.toString()
+				output.addLine data.toString(), workpath
+			if data.toString().strip() == "Verifying..." || data.toString().strip() == "Verifying and uploading..."
+				dispError = true
+		stdoutput.on 'close', (code) =>
+			info = {
+				'buildFolder': @buildFolders[file]
+				'name': name
+				'workpath': workpath
+			}
+			callback code, info
+			output.finish()
+	build: (keep) ->
+		@_build ['--verify'], (code, info) =>
+			if code != 0
+				atom.notifications.addError 'Build failed'
+			else if keep
+				for ending in ['.eep','.elf','.hex']
+					fs.createReadStream(info.buildFolder + info.name + ending).pipe(fs.createWriteStream(info.workpath + seperator + info.name + ending))
+		
 	upload: ->
-		editor = atom.workspace.getActivePaneItem()
-		file = editor?.buffer?.file?.getPath()?.split seperator
-		file?.pop()
-		name = file?.pop()
-		file?.push name
-		workpath = file?.join seperator
-		file?.push name+".ino"
-		file = file?.join seperator
-		dispError = false
+		callback = (code, info) =>
+			if code == 0
+				atom.notifications.addInfo 'Successfully uploaded sketch'
+			else
+				if uploading
+					atom.notifications.addError "Couldn't upload to board, is it connected?"
+				else
+					atom.notifications.addError 'Build failed'
 		uploading = false
-		output.reset()
-		if fs.existsSync(file)
-			@getPort (port) =>
-				if port == ''
-					atom.notifications.addError 'No arduino connected'
-					return
-				
-				atom.notifications.addInfo 'Start building...'
-				
-				options = [file, '-v', '--upload']
-				options = options.concat @additionalArduinoOptions file, port
-				
-				stdoutput = spawn atom.config.get('arduino-upload.arduinoExecutablePath'), options
-				
-				stdoutput.stdout.on 'data', (data) =>
-					if data.toString().strip().indexOf('Sketch') == 0 || data.toString().strip().indexOf('Global') == 0
-						atom.notifications.addInfo data.toString()
-				
-				stdoutput.stderr.on 'data', (data) =>
-					if data.toString().strip().indexOf("avrdude:") == 0 && !uploading
-						uploading = true
-						atom.notifications.addInfo 'Uploading sketch...'
-					else if dispError && !uploading
-						output.addLine data.toString(), workpath
-					else if data.toString().strip() == "Verifying and uploading..."
-						dispError = true
-				
-				stdoutput.on 'close', (code) =>
-					output.finish()
-					if code == 0
-						atom.notifications.addInfo 'Successfully uploaded sketch'
-					else
-						if uploading
-							atom.notifications.addError "Couldn't upload to board, is it connected?"
-						else
-							atom.notifications.addError 'Build failed'
-		else
-			atom.notifications.addError "File isn't part of an Arduino sketch!"
+		onerror = (data) =>
+			s = data.toString().strip()
+			if (s.indexOf("avrdude:") == 0 || s.indexOf("Uploading...") == 0) && !uploading
+				uploading = true
+				atom.notifications.addInfo 'Uploading sketch...'
+			return uploading
+		@getPort (port) =>
+			if port == ''
+				atom.notifications.addError 'No arduino connected'
+				return
+			@_build ['--upload'], callback, onerror, port
 	isArduino: (vid, pid, vendors = false) ->
 		vid = parseInt vid
 		pid = parseInt pid
