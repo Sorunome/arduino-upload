@@ -127,8 +127,14 @@ module.exports = ArduinoUpload =
 		atom.notifications.addInfo 'Start building...'
 		
 		options = [file].concat(options).concat @additionalArduinoOptions file, port
-		
 		stdoutput = spawn atom.config.get('arduino-upload.arduinoExecutablePath'), options
+		
+		error = false
+		
+		stdoutput.on 'error', (err) =>
+			atom.notifications.addError "Can't find the arduino IDE, please install it and set <i>Arduino Executable Path</i> correctly in the settings! (" + err + ")"
+			callback false
+			error = true
 		stdoutput.stdout.on 'data', (data) =>
 			if data.toString().strip().indexOf('Sketch') == 0 || data.toString().strip().indexOf('Global') == 0
 				atom.notifications.addInfo data.toString()
@@ -144,7 +150,10 @@ module.exports = ArduinoUpload =
 				output.addLine data.toString(), workpath
 			if data.toString().strip() == "Verifying..." || data.toString().strip() == "Verifying and uploading..."
 				dispError = true
+		
 		stdoutput.on 'close', (code) =>
+			if error
+				return
 			info = {
 				'buildFolder': @buildFolders[file]
 				'name': name
