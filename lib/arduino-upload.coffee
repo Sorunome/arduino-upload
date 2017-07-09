@@ -148,7 +148,7 @@ module.exports = ArduinoUpload =
 			if dispError && !overrideError
 				console.log data.toString()
 				output.addLine data.toString(), workpath
-			if data.toString().strip() == "Verifying..." || data.toString().strip() == "Verifying and uploading..."
+			if -1 != data.toString().toLowerCase().indexOf  "verifying"
 				dispError = true
 		
 		stdoutput.on 'close', (code) =>
@@ -188,8 +188,8 @@ module.exports = ArduinoUpload =
 					@_openserialport port, false
 			uploading = false
 			onerror = (data) =>
-				s = data.toString().strip()
-				if (s.indexOf("avrdude:") == 0 || s.indexOf("Uploading...") == 0) && !uploading
+				s = data.toString().toLowerCase()
+				if (s.indexOf("avrdude:") != -1 || s.indexOf("uploading") != 0) && !uploading
 					uploading = true
 					atom.notifications.addInfo 'Uploading sketch...'
 				return uploading
