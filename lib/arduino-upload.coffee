@@ -140,15 +140,18 @@ module.exports = ArduinoUpload =
 				atom.notifications.addInfo data.toString()
 		
 		stdoutput.stderr.on 'data', (data) =>
+			console.log data.toString()
 			overrideError = false
 			if onerror
 				overrideError = onerror(data)
 			if data.toString().strip() == "exit status 1"
+				console.log "ERROR OUTPUT OFF"
 				dispError = false
 			if dispError && !overrideError
 				console.log data.toString()
 				output.addLine data.toString(), workpath
-			if -1 != data.toString().toLowerCase().indexOf  "verifying"
+			if -1 != data.toString().toLowerCase().indexOf "verifying"
+				console.log "ERROR OUTPUT ACTIVATED"
 				dispError = true
 		
 		stdoutput.on 'close', (code) =>
@@ -167,7 +170,7 @@ module.exports = ArduinoUpload =
 				if code != 0
 					atom.notifications.addError 'Build failed'
 				else if keep
-					for ending in ['.eep','.elf','.hex']
+					for ending in ['.eep', '.elf', '.hex']
 						fs.createReadStream(info.buildFolder + info.name + ending).pipe(fs.createWriteStream(info.workpath + seperator + info.name + ending))
 		
 	upload: ->
@@ -189,7 +192,7 @@ module.exports = ArduinoUpload =
 			uploading = false
 			onerror = (data) =>
 				s = data.toString().toLowerCase()
-				if (s.indexOf("avrdude:") != -1 || s.indexOf("uploading") != 0) && !uploading
+				if (s.indexOf("avrdude:") != -1 || s.indexOf("uploading") == 0) && !uploading
 					uploading = true
 					atom.notifications.addInfo 'Uploading sketch...'
 				return uploading
