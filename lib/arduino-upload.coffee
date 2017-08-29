@@ -149,7 +149,7 @@ module.exports = ArduinoUpload =
 				dispError = false
 			if dispError && !overrideError
 				console.log data.toString()
-				output.addLine data.toString(), workpath
+				output.addLine data.toString(), @buildFolders[file], workpath
 			if -1 != data.toString().toLowerCase().indexOf "verifying"
 				console.log "ERROR OUTPUT ACTIVATED"
 				dispError = true
