@@ -127,7 +127,10 @@ module.exports = ArduinoUpload =
 		atom.notifications.addInfo 'Start building...'
 		
 		options = [file].concat(options).concat @additionalArduinoOptions file, port
-		stdoutput = spawn atom.config.get('arduino-upload.arduinoExecutablePath'), options
+		execPath = atom.config.get('arduino-upload.arduinoExecutablePath')
+		if execPath == 'arduino' && process.platform == 'darwin' # we are on macos, let's use the real default path
+			execPath = '/Applications/Arduino.app/Contents/MacOS/Arduino'
+		stdoutput = spawn execPath, options
 		
 		error = false
 		
