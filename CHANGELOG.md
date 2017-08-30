@@ -1,3 +1,25 @@
+## 1.2.0
+* Board can be set now via status bar
+* Better arduino default path detection for macos
+
+## 1.1.1
+* Actual error output when uploading
+
+## 1.1.0
+* multiple bugfixes
+* cleaner code
+* quicker compiling
+* add support to programmers
+
+## 1.0.3
+* fix [#10](https://github.com/Sorunome/arduino-upload/issues/6)
+
+## 1.0.2
+* add support for arduino.org boards
+
+## 1.0.1
+* fix [#6](https://github.com/Sorunome/arduino-upload/issues/6)
+
 ## 1.0.0
 * First major release
 * Added screenshots to readme

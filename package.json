@@ -10,21 +10,21 @@
     "serial",
     "compile"
   ],
-  "activationCommands": {
-    "atom-workspace": [
-      "arduino-upload:upload",
-      "arduino-upload:build",
-      "arduino-upload:verify",
-      "arduino-upload:serial-monitor"
-    ]
-  },
   "repository": "https://github.com/Sorunome/arduino-upload",
   "license": "MIT",
   "engines": {
     "atom": ">=1.0.0 <2.0.0"
   },
+  "consumedServices": {
+    "status-bar": {
+      "versions": {
+        "^1.0.0": "consumeStatusBar"
+      }
+    }
+},
   "dependencies": {
     "atom-space-pen-views": ">=2.0.3",
+    "bluebird": "^3.5.0",
     "tmp": ">=0.0.31"
   },
   "optionalDependencies": {

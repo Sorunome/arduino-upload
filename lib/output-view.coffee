@@ -1,11 +1,8 @@
 {View} = require 'atom-space-pen-views'
 escape = (s) -> 
-	s.replace(/&/g,'&amp;' ).replace(/</g,'&lt;').
-			replace(/"/g,'&quot;').replace(/'/g,'&#039;')
+	s.replace(/&/g,'&amp;' ).replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;')
 
-seperator = '/'
-if /^win/.test process.platform
-	seperator = '\\'
+{ seperator } = require './util'
 
 module.exports = 
 	class OutputView extends View

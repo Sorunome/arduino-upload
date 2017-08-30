@@ -74,3 +74,22 @@
 	
 	width: ~"calc(100% - 18em)"; // just tried out what looked OK
 }
+
+.status-bar .arduino-upload select {
+	color: @text-color;
+	border: none;
+	text-shadow: none;
+	
+	z-index: 0;
+	
+	background-color: @button-background-color;
+	&:hover {
+		background-color: @button-background-color-hover;
+	}
+	&.selected,
+	&.selected:hover {
+		// we want the selected button to behave like the :hover button; it's on top of the other buttons.
+		z-index: 1;
+		background-color: @button-background-color-selected;
+	}
+}

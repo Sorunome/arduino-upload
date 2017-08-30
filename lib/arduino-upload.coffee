@@ -7,6 +7,8 @@ path = require 'path'
 OutputView = require './output-view'
 SerialView = require './serial-view'
 tmp = require 'tmp'
+{ seperator, getArduinoPath } = require './util'
+Boards = require './boards'
 
 try
 	serialport = require 'serialport'
@@ -17,13 +19,11 @@ try
 catch e
 	usbDetect = null
 
+
+boards = new Boards
 output = null
 serial = null
 serialeditor = null
-
-seperator = '/'
-if /^win/.test process.platform
-	seperator = '\\'
 
 removeDir = (dir) ->
 	if fs.existsSync dir
@@ -76,9 +76,9 @@ module.exports = ArduinoUpload =
 		# Setup to use the new composite disposables API for registering commands
 		@subscriptions = new CompositeDisposable
 		@subscriptions.add atom.commands.add "atom-workspace",
-			'arduino-upload:verify': => @build(false)
+			'arduino-upload:verify': => @build false
 		@subscriptions.add atom.commands.add "atom-workspace",
-			'arduino-upload:build': => @build(true)
+			'arduino-upload:build': => @build true
 		@subscriptions.add atom.commands.add "atom-workspace",
 			'arduino-upload:upload': => @upload()
 		@subscriptions.add atom.commands.add "atom-workspace",
@@ -87,13 +87,31 @@ module.exports = ArduinoUpload =
 		output = new OutputView
 		atom.workspace.addBottomPanel(item:output)
 		output.hide()
+		
+		boards.init()
+		boards.load()
+		atom.config.onDidChange 'arduino-upload.arduinoExecutablePath', ({newValue, oldValue}) => 
+			boards.load()
+		atom.config.onDidChange	'arduino-upload.board', ({newValue, oldValue}) =>
+			boards.set newValue
+		
+		atom.workspace.observeActivePaneItem (editor) =>
+			if @isArduinoProject().isArduino
+				boards.show()
+			else
+				boards.hide()
 
 	deactivate: ->
 		for own s, f of @buildFolders
 			removeDir f
 		@subscriptions.dispose()
 		output?.remove()
+		boards.destroy()
 		@closeserial()
+	
+	consumeStatusBar: (statusBar) ->
+		boards.init()
+		boards.setStatusBar statusBar
 	
 	additionalArduinoOptions: (path, port = false) ->
 		options = ['-v']
@@ -108,7 +126,7 @@ module.exports = ArduinoUpload =
 			@buildFolders[path] = tmp.dirSync().name
 		options = options.concat ['--pref', 'build.path='+@buildFolders[path]]
 		return options
-	_build: (options, callback, onerror, port = false) ->
+	isArduinoProject: () ->
 		editor = atom.workspace.getActivePaneItem()
 		file = editor?.buffer?.file?.getPath()?.split seperator
 		file?.pop()
@@ -118,19 +136,21 @@ module.exports = ArduinoUpload =
 		name += '.ino'
 		file?.push name
 		file = file?.join seperator
-		dispError = false
-		output.reset()
-		if not fs.existsSync file
+		isArduino = fs.existsSync file
+		return {isArduino, workpath, file, name}
+	_build: (options, callback, onerror, port = false) ->
+		{isArduino, workpath, file, name} = @isArduinoProject()
+		if not isArduino
 			atom.notifications.addError "File isn't part of an Arduino sketch!"
 			callback false
 			return
+		
+		dispError = false
+		output.reset()
 		atom.notifications.addInfo 'Start building...'
 		
 		options = [file].concat(options).concat @additionalArduinoOptions file, port
-		execPath = atom.config.get('arduino-upload.arduinoExecutablePath')
-		if execPath == 'arduino' && process.platform == 'darwin' # we are on macos, let's use the real default path
-			execPath = '/Applications/Arduino.app/Contents/MacOS/Arduino'
-		stdoutput = spawn execPath, options
+		stdoutput = spawn getArduinoPath(), options
 		
 		error = false
 		

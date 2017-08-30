@@ -8,6 +8,7 @@ Did you not like the look of the arduino IDE but were stuck with it nevertheless
 * Serial Monitor
 * Error output when compiling
 * Files are clickable in build output --> cursor jumps to that line in that file
+* Switch board directly in the status bar
 
 ## Installation
 `apm install arduino-upload`  
