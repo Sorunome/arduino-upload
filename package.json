@@ -1,7 +1,7 @@
 {
   "name": "arduino-upload",
   "main": "./lib/arduino-upload",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Upload your arduino sketches without using the IDE",
   "keywords": [
     "arduino",
@@ -21,7 +21,7 @@
         "^1.0.0": "consumeStatusBar"
       }
     }
-},
+  },
   "dependencies": {
     "atom-space-pen-views": ">=2.0.3",
     "bluebird": "^3.5.0",
