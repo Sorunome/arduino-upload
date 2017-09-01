@@ -9,7 +9,7 @@ module.exports =
 		sendText: ->
 			input = @editorView?.querySelector '#arduino-upload-serial-input'
 			if input && @sendCallback
-				add = ['','\n','\r','\n\r']
+				add = ['','\n','\r','\r\n']
 				add = add[@editorView?.querySelector('#arduino-upload-serial-lineending').value]
 				console.log @editorView?.querySelector('#arduino-upload-serial-lineending').value
 				console.log add
@@ -17,14 +17,15 @@ module.exports =
 				input.value = ''
 		onSend: (@sendCallback) ->
 		open: (callback) ->
-			atom.workspace.open('Serial Monitor').then (@editor) =>
+			atom.workspace.open('Serial Monitor').then (editor) =>
+				@editor = editor
 				@editor.setText ''
-				@editorView = atom.views.getView(@editor).querySelector '.editor--private'
+				@editorView = @editor.editorElement
 				
 				div = document.createElement 'div'
 				div.className = 'arduino-upload-serial'
-				div.innerHTML = '<input type="text" id="arduino-upload-serial-input" /><select id="arduino-upload-serial-lineending"><option value="0">No line ending</option><option value="1">Newline</option><option value="2">Carriage return</option><option value="3">Both NL &amp; CR</option></select><button id="arduino-upload-serial-send">Send</button>'
-				@editorView.style.height = 'calc(100% - 1.8em)'
+				div.innerHTML = '<input type="text" id="arduino-upload-serial-input" /><select id="arduino-upload-serial-lineending"><option value="0">No line ending</option><option value="1">Newline</option><option value="2">Carriage return</option><option value="3">Both CR &amp; NL</option></select><button id="arduino-upload-serial-send">Send</button>'
+				@editorView.childNodes[0].style.height = 'calc(100% - 1.8em)'
 				@editorView.appendChild div
 				
 				input = @editorView.querySelector '#arduino-upload-serial-input'

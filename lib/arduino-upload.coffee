@@ -227,8 +227,10 @@ module.exports = ArduinoUpload =
 			serial.close (err) =>
 				@_build ['--upload'], callback, onerror, port
 	isArduino: (vid, pid, vendors = false) ->
-		vid = parseInt vid
-		pid = parseInt pid
+		if typeof vid == 'string'
+			vid = parseInt vid, 16
+		if typeof pid == 'string'
+			pid = parseInt pid, 16
 		if !vendors
 			vendors = @vendorsArduino
 		for own v, p of vendors
@@ -240,6 +242,7 @@ module.exports = ArduinoUpload =
 		return false
 	_getPort: (callback) ->
 		serialport.list (err, ports) =>
+			console.log ports
 			p = ''
 			for port in ports
 				if @isArduino(port.vendorId, port.productId)
@@ -248,14 +251,16 @@ module.exports = ArduinoUpload =
 			callback p
 	getPort: (callback) ->
 		if serialport == null and usbDetect == null
+			console.log 'NOTHING TO CHECK'
 			callback 'ARDUINO'
 			return
 		if usbDetect == null
+			console.log 'ONLY SERIALPORT'
 			@_getPort callback
 			return
 		usbDetect.find (err, ports) =>
 			for port in ports
-				if @isArduino(port.vendorId, port.productId, @vendorsProgrammer)
+				if @isArduino port.vendorId, port.productId, @vendorsProgrammer
 					callback 'PROGRAMMER'
 					return
 			if serialport == null
@@ -285,7 +290,7 @@ module.exports = ArduinoUpload =
 				atom.notifications.addInfo 'error in serial connection'
 		catch e
 			@closeserial()
-			atom.notifications.addError e
+			atom.notifications.addError e.toString()
 	openserialport: ->
 		if serial!=null
 			atom.notifications.addInfo 'wut, serial open?'

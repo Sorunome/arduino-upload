@@ -14,6 +14,9 @@ Did you not like the look of the arduino IDE but were stuck with it nevertheless
 `apm install arduino-upload`  
 (Requires atom 1.10 or later)
 
+## Troubleshooting
+Are you on windows and can't install because of the serialport package? Try installing the [Visual C++ 2015 building tools](http://landinghub.visualstudio.com/visual-cpp-build-tools)!
+
 ## Available commands
 * `arduino-upload:verify` - Verifies the sketches (checking for error output), deletes all sources, though
 * `arduino-upload:build` - Builds the current sketch, the .hex, .elf and .eep are copied to the sketch directory

@@ -25,10 +25,10 @@
   "dependencies": {
     "atom-space-pen-views": ">=2.0.3",
     "bluebird": "^3.5.0",
+    "serialport": "git://github.com/Sorunome/node-serialport.git#94a14bedc76aa5e0d74139f9442039a167ffa897",
     "tmp": ">=0.0.31"
   },
   "optionalDependencies": {
-    "usb-detection": ">=1.4.0",
-    "serialport": ">=4.0.7"
+    "usb-detection": ">=1.4.0"
   }
 }

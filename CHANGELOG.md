@@ -1,3 +1,6 @@
+## 1.3.0
+* Windows support should be working
+
 ## 1.2.0
 * Board can be set now via status bar
 * Better arduino default path detection for macos
