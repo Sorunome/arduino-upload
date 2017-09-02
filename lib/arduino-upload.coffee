@@ -11,7 +11,7 @@ tmp = require 'tmp'
 Boards = require './boards'
 
 try
-	serialport = require 'serialport'
+	serialport = require 'serialport-builds-electron'
 catch e
 	serialport = null
 try

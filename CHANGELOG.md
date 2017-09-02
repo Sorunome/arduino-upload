@@ -1,3 +1,6 @@
+## 1.3.2
+* Derp, forgot to update the import
+
 ## 1.3.1
 * Depend on `serialport-builds-electron` now so that I can upload custom electron builds to windows users
 
