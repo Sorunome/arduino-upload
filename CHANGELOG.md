@@ -1,3 +1,6 @@
+## 1.3.1
+* Depend on `serialport-builds-electron` now so that I can upload custom electron builds to windows users
+
 ## 1.3.0
 * Windows support should be working
 
