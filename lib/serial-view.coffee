@@ -20,7 +20,7 @@ module.exports =
 			atom.workspace.open('Serial Monitor').then (editor) =>
 				@editor = editor
 				@editor.setText ''
-				@editorView = @editor.editorElement
+				@editorView = @editor.element
 				
 				div = document.createElement 'div'
 				div.className = 'arduino-upload-serial'
