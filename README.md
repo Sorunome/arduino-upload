@@ -19,7 +19,7 @@ Are you on windows and can't install because of the serialport package? Try inst
 
 ## Available commands
 * `arduino-upload:verify` - Verifies the sketches (checking for error output), deletes all sources, though
-* `arduino-upload:build` - Builds the current sketch, the .hex, .elf and .eep are copied to the sketch directory
+* `arduino-upload:build` - Builds the current sketch, the .hex, .elf, .eep and .bin are copied to the sketch directory
 * `arduino-upload:upload` - Uploads the current sketch to a connected arduino
 * `arduino-upload:serial-monitor` - Opens the serial monitor of a connected arduino
 

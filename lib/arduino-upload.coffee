@@ -193,7 +193,7 @@ module.exports = ArduinoUpload =
 				if code != 0
 					atom.notifications.addError 'Build failed'
 				else if keep
-					for ending in ['.eep', '.elf', '.hex']
+					for ending in ['.eep', '.elf', '.hex', '.bin']
 						fs.createReadStream(info.buildFolder + info.name + ending).pipe(fs.createWriteStream(info.workpath + seperator + info.name + ending))
 		
 	upload: ->
