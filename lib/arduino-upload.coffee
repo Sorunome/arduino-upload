@@ -188,6 +188,8 @@ module.exports = ArduinoUpload =
 			callback code, info
 			output.finish()
 	build: (keep) ->
+		@closeserial()
+		atom.commands.dispatch(atom.views.getView(atom.workspace.getActiveTextEditor()), 'window:save-all')
 		@_build ['--verify'], (code, info) =>
 			if code != false
 				if code != 0
@@ -197,6 +199,8 @@ module.exports = ArduinoUpload =
 						fs.createReadStream(info.buildFolder + info.name + ending).pipe(fs.createWriteStream(info.workpath + seperator + info.name + ending))
 		
 	upload: ->
+		@closeserial()
+		atom.commands.dispatch(atom.views.getView(atom.workspace.getActiveTextEditor()), 'window:save-all')
 		@getPort (port) =>
 			if port == ''
 				atom.notifications.addError 'No arduino connected'
