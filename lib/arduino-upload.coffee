@@ -42,6 +42,11 @@ module.exports = ArduinoUpload =
 			description: 'The location of the arduino IDE executable, your PATH is being searched, too'
 			type: 'string'
 			default: 'arduino'
+		autoSave:
+			title: 'Autosave all active tabs before building/uploading.'
+			description: 'This will auto close the "Serial Monitor" tab and save everything before building/uploading.'
+			type: 'boolean'
+			default: 'false'
 		baudRate:
 			title: 'BAUD Rate'
 			description: 'Sets the BAUD rate for the serial monitor, if you change it you need to close and open it manually'
@@ -59,11 +64,6 @@ module.exports = ArduinoUpload =
 			default: 1
 			minimum: 0
 			maximum: 3
-		autoSave:
-			title: 'Autosave all active tabs before building/uploading.'
-			description: 'This will auto close the "Serial Monitor" tab and save everything before building/uploading.'
-			type: 'boolean'
-			default: 'false'
 	vendorsArduino: {
 		0x2341: true # Arduino
 		0x2a03: true # Arduino M0 Pro (perhaps other devices?)
