@@ -59,6 +59,11 @@ module.exports = ArduinoUpload =
 			default: 1
 			minimum: 0
 			maximum: 3
+		autoSave:
+			title: 'Autosave all active tabs before building/uploading.'
+			description: 'This will auto close the "Serial Monitor" tab and save everything before building/uploading.'
+			type: 'boolean'
+			default: 'false'
 	vendorsArduino: {
 		0x2341: true # Arduino
 		0x2a03: true # Arduino M0 Pro (perhaps other devices?)
@@ -139,8 +144,9 @@ module.exports = ArduinoUpload =
 		isArduino = fs.existsSync file
 		return {isArduino, workpath, file, name}
 	_build: (options, callback, onerror, port = false) ->
-		@closeserial()
-		atom.commands.dispatch(atom.views.getView(atom.workspace.getActiveTextEditor()), 'window:save-all')
+		if atom.config.get('arduino-upload.autoSave')
+			@closeserial()
+			atom.commands.dispatch(atom.views.getView(atom.workspace.getActiveTextEditor()), 'window:save-all')
 		{isArduino, workpath, file, name} = @isArduinoProject()
 		if not isArduino
 			atom.notifications.addError "File isn't part of an Arduino sketch!"
