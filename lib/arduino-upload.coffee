@@ -139,6 +139,8 @@ module.exports = ArduinoUpload =
 		isArduino = fs.existsSync file
 		return {isArduino, workpath, file, name}
 	_build: (options, callback, onerror, port = false) ->
+		@closeserial()
+		atom.commands.dispatch(atom.views.getView(atom.workspace.getActiveTextEditor()), 'window:save-all')
 		{isArduino, workpath, file, name} = @isArduinoProject()
 		if not isArduino
 			atom.notifications.addError "File isn't part of an Arduino sketch!"
@@ -188,8 +190,6 @@ module.exports = ArduinoUpload =
 			callback code, info
 			output.finish()
 	build: (keep) ->
-		@closeserial()
-		atom.commands.dispatch(atom.views.getView(atom.workspace.getActiveTextEditor()), 'window:save-all')
 		@_build ['--verify'], (code, info) =>
 			if code != false
 				if code != 0
@@ -199,8 +199,6 @@ module.exports = ArduinoUpload =
 						fs.createReadStream(info.buildFolder + info.name + ending).pipe(fs.createWriteStream(info.workpath + seperator + info.name + ending))
 		
 	upload: ->
-		@closeserial()
-		atom.commands.dispatch(atom.views.getView(atom.workspace.getActiveTextEditor()), 'window:save-all')
 		@getPort (port) =>
 			if port == ''
 				atom.notifications.addError 'No arduino connected'
