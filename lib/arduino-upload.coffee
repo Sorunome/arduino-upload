@@ -9,6 +9,7 @@ SerialView = require './serial-view'
 tmp = require 'tmp'
 { seperator, getArduinoPath } = require './util'
 Boards = require './boards'
+serialOpen = false
 
 try
 	serialport = require 'serialport-builds-electron'
@@ -33,7 +34,7 @@ removeDir = (dir) ->
 				removeDir path
 			else
 				fs.unlinkSync path
-			
+
 		fs.rmdirSync dir
 module.exports = ArduinoUpload =
 	config:
@@ -42,11 +43,20 @@ module.exports = ArduinoUpload =
 			description: 'The location of the arduino IDE executable, your PATH is being searched, too'
 			type: 'string'
 			default: 'arduino'
-		autoSave:
-			title: 'Autosave all active tabs before building/uploading.'
-			description: 'This will auto close the "Serial Monitor" tab and save everything before building/uploading.'
-			type: 'boolean'
-			default: 'false'
+		autoSaveStuff:
+			title: 'Autosave'
+			type: 'object'
+			properties:
+				autoSave:
+					title: 'Autosave all tabs before building, verifying, and uploading'
+					description: 'This will auto close the Serial Monitor tab and save everything before building/uploading.'
+					type: 'boolean'
+					default: 'false'
+				serialReopen:
+					title: 'Automatically reopen serial monitor'
+					description: 'This setting toggles wether or not the Serial Monitor should be re-opened automatically.'
+					type: 'boolean'
+					default: 'false'
 		baudRate:
 			title: 'BAUD Rate'
 			description: 'Sets the BAUD rate for the serial monitor, if you change it you need to close and open it manually'
@@ -69,7 +79,7 @@ module.exports = ArduinoUpload =
 		0x2a03: true # Arduino M0 Pro (perhaps other devices?)
 		0x03eb: true # Atmel
 		# knockoff producers
-		0x0403: [ 0x6001 ] # FTDI 
+		0x0403: [ 0x6001 ] # FTDI
 		0x1a86: [ 0x7523 ] # QuinHeng
 		0x0403: [ 0x6001 ] # Future Technology Devices International, Ltd
 	}
@@ -88,18 +98,18 @@ module.exports = ArduinoUpload =
 			'arduino-upload:upload': => @upload()
 		@subscriptions.add atom.commands.add "atom-workspace",
 			'arduino-upload:serial-monitor': => @openserial()
-		
+
 		output = new OutputView
 		atom.workspace.addBottomPanel(item:output)
 		output.hide()
-		
+
 		boards.init()
 		boards.load()
-		atom.config.onDidChange 'arduino-upload.arduinoExecutablePath', ({newValue, oldValue}) => 
+		atom.config.onDidChange 'arduino-upload.arduinoExecutablePath', ({newValue, oldValue}) =>
 			boards.load()
 		atom.config.onDidChange	'arduino-upload.board', ({newValue, oldValue}) =>
 			boards.set newValue
-		
+
 		atom.workspace.observeActivePaneItem (editor) =>
 			if @isArduinoProject().isArduino
 				boards.show()
@@ -113,11 +123,11 @@ module.exports = ArduinoUpload =
 		output?.remove()
 		boards.destroy()
 		@closeserial()
-	
+
 	consumeStatusBar: (statusBar) ->
 		boards.init()
 		boards.setStatusBar statusBar
-	
+
 	additionalArduinoOptions: (path, port = false) ->
 		options = ['-v']
 		if atom.config.get('arduino-upload.board') != ''
@@ -144,7 +154,11 @@ module.exports = ArduinoUpload =
 		isArduino = fs.existsSync file
 		return {isArduino, workpath, file, name}
 	_build: (options, callback, onerror, port = false) ->
-		if atom.config.get('arduino-upload.autoSave')
+		if atom.config.get('arduino-upload.autoSaveStuff.autoSave')
+			if serialOpen
+				serialWasOpen = true
+			else
+				serialWasOpen = false
 			@closeserial()
 			atom.commands.dispatch(atom.views.getView(atom.workspace.getActiveTextEditor()), 'window:save-all')
 		{isArduino, workpath, file, name} = @isArduinoProject()
@@ -152,16 +166,16 @@ module.exports = ArduinoUpload =
 			atom.notifications.addError "File isn't part of an Arduino sketch!"
 			callback false
 			return
-		
+
 		dispError = false
 		output.reset()
 		atom.notifications.addInfo 'Start building...'
-		
+
 		options = [file].concat(options).concat @additionalArduinoOptions file, port
 		stdoutput = spawn getArduinoPath(), options
-		
+
 		error = false
-		
+
 		stdoutput.on 'error', (err) =>
 			atom.notifications.addError "Can't find the arduino IDE, please install it and set <i>Arduino Executable Path</i> correctly in the settings! (" + err + ")"
 			callback false
@@ -169,7 +183,7 @@ module.exports = ArduinoUpload =
 		stdoutput.stdout.on 'data', (data) =>
 			if data.toString().strip().indexOf('Sketch') == 0 || data.toString().strip().indexOf('Global') == 0
 				atom.notifications.addInfo data.toString()
-		
+
 		stdoutput.stderr.on 'data', (data) =>
 			console.log data.toString()
 			overrideError = false
@@ -184,7 +198,7 @@ module.exports = ArduinoUpload =
 			if -1 != data.toString().toLowerCase().indexOf "verifying"
 				console.log "ERROR OUTPUT ACTIVATED"
 				dispError = true
-		
+
 		stdoutput.on 'close', (code) =>
 			if error
 				return
@@ -195,6 +209,8 @@ module.exports = ArduinoUpload =
 			}
 			callback code, info
 			output.finish()
+			if serialWasOpen && atom.config.get('arduino-upload.autoSaveStuff.serialReopen') && atom.config.get('arduino-upload.autoSaveStuff.autoSave')
+				@openserial()
 	build: (keep) ->
 		@_build ['--verify'], (code, info) =>
 			if code != false
@@ -203,7 +219,7 @@ module.exports = ArduinoUpload =
 				else if keep
 					for ending in ['.eep', '.elf', '.hex', '.bin']
 						fs.createReadStream(info.buildFolder + info.name + ending).pipe(fs.createWriteStream(info.workpath + seperator + info.name + ending))
-		
+
 	upload: ->
 		@getPort (port) =>
 			if port == ''
@@ -243,7 +259,7 @@ module.exports = ArduinoUpload =
 			vendors = @vendorsArduino
 		for own v, p of vendors
 			if vid == parseInt v
-				if p && typeof p == 'boolean' 
+				if p && typeof p == 'boolean'
 					return true
 				if -1 != p.indexOf pid
 					return true
@@ -313,15 +329,16 @@ module.exports = ArduinoUpload =
 				atom.notifications.addError 'No Arduino found!'
 				@closeserial()
 				return
-			
+
 			@_openserialport(port)
 	openserial: ->
+		serialOpen = true
 		if serialport == null
 			atom.notifications.addInfo 'Serialport dependency not present, try installing it! (And, if you figure out how, please report me how <a href="https://github.com/Sorunome/arduino-upload/issues">here</a> as I don\'t know how to do it..... Really, <b>please</b> help me! D: )'
 			return
 		if serial!=null
 			return
-		
+
 		serialeditor = new SerialView
 		serialeditor.open =>
 			serialeditor.onDidDestroy =>
@@ -330,9 +347,10 @@ module.exports = ArduinoUpload =
 				serial?.write s
 			@openserialport()
 	closeserial: ->
+		serialOpen = false
 		serial?.close (err) ->
 			return
 		serial = null
-		
+
 		serialeditor?.destroy()
 		serialeditor = null
