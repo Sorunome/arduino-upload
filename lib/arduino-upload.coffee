@@ -40,36 +40,37 @@ module.exports = ArduinoUpload =
 	config:
 		arduinoExecutablePath:
 			title: 'Arduino Executable Path'
-			description: 'The location of the arduino IDE executable, your PATH is being searched, too'
+			description: '''The location of the arduino IDE executable, your PATH is
+			being searched, too'''
 			type: 'string'
 			default: 'arduino'
-		autoSaveStuff:
+		autosave:
 			title: 'Autosave'
-			type: 'object'
-			properties:
-				autoSave:
-					title: 'Autosave all tabs before building, verifying, and uploading'
-					description: 'This will auto close the Serial Monitor tab and save everything before building/uploading.'
-					type: 'boolean'
-					default: 'false'
-				serialReopen:
-					title: 'Automatically reopen serial monitor'
-					description: 'This setting toggles wether or not the Serial Monitor should be re-opened automatically.'
-					type: 'boolean'
-					default: 'false'
+			description: '''Enabeles autosaving before building, uploading, or verifying.
+			If the serial monitor is open and `save` is selected the serial monitor will
+			quit to avoid saving its output when performing the aforementioned producers.
+			The serial monitor can be made to automatically reopened afterwards through the
+			setting `save+reopen`'''
+			type: 'string'
+			default: 'disabled'
+			enum: ['disabled', 'save', 'save+reopen']
 		baudRate:
 			title: 'BAUD Rate'
-			description: 'Sets the BAUD rate for the serial monitor, if you change it you need to close and open it manually'
+			description: '''Sets the BAUD rate for the serial monitor, if you change
+			it you need to close and open it manually'''
 			type: 'number'
 			default: '9600'
 		board:
 			title: 'Arduino board'
-			description: 'If kept blank, it will take the settings from the arduino IDE. The board uses the pattern as described <a href="https://github.com/arduino/Arduino/blob/ide-1.5.x/build/shared/manpage.adoc#options">here</a>'
+			description: '''If kept blank, it will take the settings from the arduino
+			IDE. The board uses the pattern as described
+			<a href="https://github.com/arduino/Arduino/blob/ide-1.5.x/build/shared/manpage.adoc#options">here</a>'''
 			type: 'string'
 			default: ''
 		lineEnding:
 			title: 'Default line ending in serial monitor'
-			description: '0 - No line ending<br>1 - Newline<br>2 - Carriage return<br>3 - Both NL &amp; CR'
+			description: '''0 - No line ending<br>1 - Newline<br>2 - Carriage return
+			<br>3 - Both NL &amp; CR'''
 			type: 'integer'
 			default: 1
 			minimum: 0
@@ -154,11 +155,12 @@ module.exports = ArduinoUpload =
 		isArduino = fs.existsSync file
 		return {isArduino, workpath, file, name}
 	_build: (options, callback, onerror, port = false) ->
-		if atom.config.get('arduino-upload.autoSaveStuff.autoSave')
-			if serialOpen
-				serialWasOpen = true
-			else
-				serialWasOpen = false
+		if atom.config.get('arduino-upload.autosave') == 'save' or 'save+reopen'
+			if atom.config.get('arduino-upload.autosave') == 'save+reopen'
+				if serial != null
+					serialWasOpen = true
+				else
+					serialWasOpen = false
 			@closeserial()
 			atom.commands.dispatch(atom.views.getView(atom.workspace.getActiveTextEditor()), 'window:save-all')
 		{isArduino, workpath, file, name} = @isArduinoProject()
@@ -209,8 +211,9 @@ module.exports = ArduinoUpload =
 			}
 			callback code, info
 			output.finish()
-			if serialWasOpen && atom.config.get('arduino-upload.autoSaveStuff.serialReopen') && atom.config.get('arduino-upload.autoSaveStuff.autoSave')
-				@openserial()
+			if atom.config.get('arduino-upload.autosave') == 'save+reopen'
+				if serialWasOpen
+					@openserial()
 	build: (keep) ->
 		@_build ['--verify'], (code, info) =>
 			if code != false
