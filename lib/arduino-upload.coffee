@@ -9,7 +9,6 @@ SerialView = require './serial-view'
 tmp = require 'tmp'
 { seperator, getArduinoPath } = require './util'
 Boards = require './boards'
-serialOpen = false
 
 try
 	serialport = require 'serialport-builds-electron'
@@ -335,7 +334,6 @@ module.exports = ArduinoUpload =
 
 			@_openserialport(port)
 	openserial: ->
-		serialOpen = true
 		if serialport == null
 			atom.notifications.addInfo 'Serialport dependency not present, try installing it! (And, if you figure out how, please report me how <a href="https://github.com/Sorunome/arduino-upload/issues">here</a> as I don\'t know how to do it..... Really, <b>please</b> help me! D: )'
 			return
@@ -350,7 +348,6 @@ module.exports = ArduinoUpload =
 				serial?.write s
 			@openserialport()
 	closeserial: ->
-		serialOpen = false
 		serial?.close (err) ->
 			return
 		serial = null
