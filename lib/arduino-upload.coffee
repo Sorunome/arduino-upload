@@ -157,11 +157,8 @@ module.exports = ArduinoUpload =
 		serialWasOpen = false
 		autosaveConf = atom.config.get('arduino-upload.autosave')
 		if (autosaveConf == 'save') || (autosaveConf == 'save+reopen')
-			if autosaveConf == 'save+reopen'
-				if serial != null
-					serialWasOpen = true
-				else
-					serialWasOpen = false
+			if (autosaveConf == 'save+reopen') && (serial != null)
+				serialWasOpen = true
 			@closeserial()
 			atom.commands.dispatch(atom.views.getView(atom.workspace.getActiveTextEditor()), 'window:save-all')
 		{isArduino, workpath, file, name} = @isArduinoProject()
