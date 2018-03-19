@@ -154,8 +154,10 @@ module.exports = ArduinoUpload =
 		isArduino = fs.existsSync file
 		return {isArduino, workpath, file, name}
 	_build: (options, callback, onerror, port = false) ->
-		if atom.config.get('arduino-upload.autosave') == 'save' or 'save+reopen'
-			if atom.config.get('arduino-upload.autosave') == 'save+reopen'
+		serialWasOpen = false
+		autosaveConf = atom.config.get('arduino-upload.autosave')
+		if (autosaveConf == 'save') || (autosaveConf == 'save+reopen')
+			if autosaveConf == 'save+reopen'
 				if serial != null
 					serialWasOpen = true
 				else
@@ -210,8 +212,7 @@ module.exports = ArduinoUpload =
 			}
 			callback code, info
 			output.finish()
-			if atom.config.get('arduino-upload.autosave') == 'save+reopen'
-				if serialWasOpen
+			if (autosaveConf == 'save+reopen') && (serialWasOpen)
 					@openserial()
 	build: (keep) ->
 		@_build ['--verify'], (code, info) =>
