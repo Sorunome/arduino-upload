@@ -33,28 +33,43 @@ removeDir = (dir) ->
 				removeDir path
 			else
 				fs.unlinkSync path
-			
+
 		fs.rmdirSync dir
 module.exports = ArduinoUpload =
 	config:
 		arduinoExecutablePath:
 			title: 'Arduino Executable Path'
-			description: 'The location of the arduino IDE executable, your PATH is being searched, too'
+			description: '''The location of the arduino IDE executable, your PATH is
+			being searched, too'''
 			type: 'string'
 			default: 'arduino'
+		autosave:
+			title: 'Autosave'
+			description: '''Enabeles autosaving before building, uploading, or verifying.
+			If the serial monitor is open and `save` is selected the serial monitor will
+			quit to avoid saving its output when performing the aforementioned producers.
+			The serial monitor can be made to automatically reopened afterwards through the
+			setting `save+reopen`'''
+			type: 'string'
+			default: 'disabled'
+			enum: ['disabled', 'save', 'save+reopen']
 		baudRate:
 			title: 'BAUD Rate'
-			description: 'Sets the BAUD rate for the serial monitor, if you change it you need to close and open it manually'
+			description: '''Sets the BAUD rate for the serial monitor, if you change
+			it you need to close and open it manually'''
 			type: 'number'
 			default: '9600'
 		board:
 			title: 'Arduino board'
-			description: 'If kept blank, it will take the settings from the arduino IDE. The board uses the pattern as described <a href="https://github.com/arduino/Arduino/blob/ide-1.5.x/build/shared/manpage.adoc#options">here</a>'
+			description: '''If kept blank, it will take the settings from the arduino
+			IDE. The board uses the pattern as described
+			<a href="https://github.com/arduino/Arduino/blob/ide-1.5.x/build/shared/manpage.adoc#options">here</a>'''
 			type: 'string'
 			default: ''
 		lineEnding:
 			title: 'Default line ending in serial monitor'
-			description: '0 - No line ending<br>1 - Newline<br>2 - Carriage return<br>3 - Both NL &amp; CR'
+			description: '''0 - No line ending<br>1 - Newline<br>2 - Carriage return
+			<br>3 - Both NL &amp; CR'''
 			type: 'integer'
 			default: 1
 			minimum: 0
@@ -64,7 +79,7 @@ module.exports = ArduinoUpload =
 		0x2a03: true # Arduino M0 Pro (perhaps other devices?)
 		0x03eb: true # Atmel
 		# knockoff producers
-		0x0403: [ 0x6001 ] # FTDI 
+		0x0403: [ 0x6001 ] # FTDI
 		0x1a86: [ 0x7523 ] # QuinHeng
 		0x0403: [ 0x6001 ] # Future Technology Devices International, Ltd
 	}
@@ -83,18 +98,18 @@ module.exports = ArduinoUpload =
 			'arduino-upload:upload': => @upload()
 		@subscriptions.add atom.commands.add "atom-workspace",
 			'arduino-upload:serial-monitor': => @openserial()
-		
+
 		output = new OutputView
 		atom.workspace.addBottomPanel(item:output)
 		output.hide()
-		
+
 		boards.init()
 		boards.load()
-		atom.config.onDidChange 'arduino-upload.arduinoExecutablePath', ({newValue, oldValue}) => 
+		atom.config.onDidChange 'arduino-upload.arduinoExecutablePath', ({newValue, oldValue}) =>
 			boards.load()
 		atom.config.onDidChange	'arduino-upload.board', ({newValue, oldValue}) =>
 			boards.set newValue
-		
+
 		atom.workspace.observeActivePaneItem (editor) =>
 			if @isArduinoProject().isArduino
 				boards.show()
@@ -108,11 +123,11 @@ module.exports = ArduinoUpload =
 		output?.remove()
 		boards.destroy()
 		@closeserial()
-	
+
 	consumeStatusBar: (statusBar) ->
 		boards.init()
 		boards.setStatusBar statusBar
-	
+
 	additionalArduinoOptions: (path, port = false) ->
 		options = ['-v']
 		if atom.config.get('arduino-upload.board') != ''
@@ -139,21 +154,28 @@ module.exports = ArduinoUpload =
 		isArduino = fs.existsSync file
 		return {isArduino, workpath, file, name}
 	_build: (options, callback, onerror, port = false) ->
+		serialWasOpen = false
+		autosaveConf = atom.config.get('arduino-upload.autosave')
+		if (autosaveConf == 'save') || (autosaveConf == 'save+reopen')
+			if (autosaveConf == 'save+reopen') && (serial != null)
+				serialWasOpen = true
+			@closeserial()
+			atom.commands.dispatch(atom.views.getView(atom.workspace.getActiveTextEditor()), 'window:save-all')
 		{isArduino, workpath, file, name} = @isArduinoProject()
 		if not isArduino
 			atom.notifications.addError "File isn't part of an Arduino sketch!"
 			callback false
 			return
-		
+
 		dispError = false
 		output.reset()
 		atom.notifications.addInfo 'Start building...'
-		
+
 		options = [file].concat(options).concat @additionalArduinoOptions file, port
 		stdoutput = spawn getArduinoPath(), options
-		
+
 		error = false
-		
+
 		stdoutput.on 'error', (err) =>
 			atom.notifications.addError "Can't find the arduino IDE, please install it and set <i>Arduino Executable Path</i> correctly in the settings! (" + err + ")"
 			callback false
@@ -161,7 +183,7 @@ module.exports = ArduinoUpload =
 		stdoutput.stdout.on 'data', (data) =>
 			if data.toString().strip().indexOf('Sketch') == 0 || data.toString().strip().indexOf('Global') == 0
 				atom.notifications.addInfo data.toString()
-		
+
 		stdoutput.stderr.on 'data', (data) =>
 			console.log data.toString()
 			overrideError = false
@@ -176,7 +198,7 @@ module.exports = ArduinoUpload =
 			if -1 != data.toString().toLowerCase().indexOf "verifying"
 				console.log "ERROR OUTPUT ACTIVATED"
 				dispError = true
-		
+
 		stdoutput.on 'close', (code) =>
 			if error
 				return
@@ -187,6 +209,8 @@ module.exports = ArduinoUpload =
 			}
 			callback code, info
 			output.finish()
+			if (autosaveConf == 'save+reopen') && (serialWasOpen)
+					@openserial()
 	build: (keep) ->
 		@_build ['--verify'], (code, info) =>
 			if code != false
@@ -195,7 +219,7 @@ module.exports = ArduinoUpload =
 				else if keep
 					for ending in ['.eep', '.elf', '.hex', '.bin']
 						fs.createReadStream(info.buildFolder + info.name + ending).pipe(fs.createWriteStream(info.workpath + seperator + info.name + ending))
-		
+
 	upload: ->
 		@getPort (port) =>
 			if port == ''
@@ -235,7 +259,7 @@ module.exports = ArduinoUpload =
 			vendors = @vendorsArduino
 		for own v, p of vendors
 			if vid == parseInt v
-				if p && typeof p == 'boolean' 
+				if p && typeof p == 'boolean'
 					return true
 				if -1 != p.indexOf pid
 					return true
@@ -305,7 +329,7 @@ module.exports = ArduinoUpload =
 				atom.notifications.addError 'No Arduino found!'
 				@closeserial()
 				return
-			
+
 			@_openserialport(port)
 	openserial: ->
 		if serialport == null
@@ -313,7 +337,7 @@ module.exports = ArduinoUpload =
 			return
 		if serial!=null
 			return
-		
+
 		serialeditor = new SerialView
 		serialeditor.open =>
 			serialeditor.onDidDestroy =>
@@ -325,6 +349,6 @@ module.exports = ArduinoUpload =
 		serial?.close (err) ->
 			return
 		serial = null
-		
+
 		serialeditor?.destroy()
 		serialeditor = null
