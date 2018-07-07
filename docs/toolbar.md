@@ -41,3 +41,7 @@ The following is an example for the Flex Tool Bar's configuration file, `toolbar
 		tooltip: "Edit Tool Bar"
 	  }
 	]
+	
+Here's the result:
+
+![Arduino Upload Atom toolbar screenshot](http://i.imgur.com/TdbZN9r.png)
