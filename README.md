@@ -11,11 +11,12 @@ Did you not like the look of the arduino IDE but were stuck with it nevertheless
 * Switch board directly in the status bar
 
 ## Installation
-`apm install arduino-upload`  
+`apm install arduino-upload`
 (Requires atom 1.10 or later)
 
 ## Troubleshooting
-Are you on windows and can't install because of the serialport package? Try installing the [Visual C++ 2015 building tools](http://landinghub.visualstudio.com/visual-cpp-build-tools)!
+* Are you on windows and can't install because of the serialport package? Try installing the [Visual C++ 2015 building tools](http://landinghub.visualstudio.com/visual-cpp-build-tools)!
+* The verify/build output do not appear? Make your your Arduino official IDE language is set as English from its preferences.
 
 ## Available commands
 * `arduino-upload:verify` - Verifies the sketches (checking for error output), deletes all sources, though
