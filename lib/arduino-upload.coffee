@@ -85,6 +85,7 @@ module.exports = ArduinoUpload =
 	}
 	vendorsProgrammer: {
 		0x03eb: [ 0x2141 ] # Atmel ICE debugger
+		0x1781: [ 0x0c9f ] # USBtinyISP Clones
 	}
 	buildFolders: []
 	activate: (state) ->
