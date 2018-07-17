@@ -24,6 +24,8 @@ Did you not like the look of the arduino IDE but were stuck with it nevertheless
 * `arduino-upload:upload` - Uploads the current sketch to a connected arduino
 * `arduino-upload:serial-monitor` - Opens the serial monitor of a connected arduino
 
+You can place these commands in a toolbar using the [**Flex Tool Bar**](https://atom.io/packages/flex-tool-bar) package. [Here's how](docs/toolbar.md).
+
 ## Screenshots
 Verifying a program:  
 ![verify](https://github.com/Sorunome/arduino-upload/blob/master/screenshots/verify.gif?raw=true)
