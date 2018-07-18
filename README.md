@@ -15,7 +15,7 @@ Did you not like the look of the arduino IDE but were stuck with it nevertheless
 (Requires atom 1.10 or later)
 
 ## Troubleshooting
-* Are you on Windows and can't install because of the serialport package? Try installing the [Visual C++ 2015 building tools](http://landinghub.visualstudio.com/visual-cpp-build-tools)!
+* Are you on Windows and can't install because of the serialport package? Try installing the [Visual C++ 2015 building tools](https://github.com/felixrieseberg/windows-build-tools) by running `npm install --global --production windows-build-tools` from `%LocalAppData%\atom\resources\app-<VERSION>\apm\node_modules\npm\bin` (this uses atoms integrated npm instead of requiring an external instance). Then update apm config with `apm config set msvs_version [VERSION]` (the version installed by the tool should be 2015) and `apm config set python [PATH]\python.exe` (where PATH is the path to the python executable).
 * The verify/build output does not appear? Make sure your Arduino official IDE language is set to English.
 
 ## Available commands
