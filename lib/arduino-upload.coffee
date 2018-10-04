@@ -11,7 +11,7 @@ tmp = require 'tmp'
 Boards = require './boards'
 
 try
-	serialport = require 'serialport-builds-electron'
+	serialport = require 'serialport'
 catch e
 	serialport = null
 try
@@ -295,10 +295,10 @@ module.exports = ArduinoUpload =
 	serialNormalClose: true
 	_openserialport: (port, start = true)->
 		try
-			serial = new serialport.SerialPort port, {
-					baudRate: atom.config.get('arduino-upload.baudRate')
-					parser: serialport.parsers.raw
-				}
+			serialport serial = new serialport(port, {
+						baudRate: atom.config.get('arduino-upload.baudRate')
+						parser: serialport.parsers.raw
+					});
 			@serialNormalClose = true
 			serial.on 'open', (data) =>
 				if start

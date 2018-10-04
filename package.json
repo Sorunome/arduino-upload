@@ -13,22 +13,20 @@
   "repository": "https://github.com/Sorunome/arduino-upload",
   "license": "MIT",
   "engines": {
-    "atom": ">=1.0.0 <2.0.0"
+    "atom": ">=1.0.0"
   },
   "consumedServices": {
     "status-bar": {
       "versions": {
-        "^1.0.0": "consumeStatusBar"
+        ">=1.0.0": "consumeStatusBar"
       }
     }
   },
   "dependencies": {
     "atom-space-pen-views": ">=2.0.3",
-    "bluebird": "^3.5.0",
-    "serialport-builds-electron": "^4.0.7",
-    "tmp": ">=0.0.31"
-  },
-  "optionalDependencies": {
-    "usb-detection": ">=1.4.0"
+    "bluebird": ">=3.5.0",
+    "serialport": ">=7.0.2",
+    "tmp": ">=0.0.31",
+    "usb-detection": ">=3.0.0"
   }
 }
