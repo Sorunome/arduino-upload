@@ -39,37 +39,38 @@ module.exports = ArduinoUpload =
 	config:
 		arduinoExecutablePath:
 			title: 'Arduino Executable Path'
-			description: '''The location of the arduino IDE executable, your PATH is
-			being searched, too'''
+			description: '''The path to the Arduino IDE executable or debug executable
+			. This checks the default install location automatically.'''
 			type: 'string'
 			default: 'arduino'
 		autosave:
-			title: 'Autosave'
-			description: '''Enabeles autosaving before building, uploading, or verifying.
-			If the serial monitor is open and `save` is selected the serial monitor will
-			quit to avoid saving its output when performing the aforementioned producers.
-			The serial monitor can be made to automatically reopened afterwards through the
-			setting `save+reopen`'''
+			title: 'AutoSave'
+			description: '''Enables auto-saving before building, uploading, or
+			verifying. The serial monitor will be closed for this operation, but can
+			be made to reopen automatically.'''
 			type: 'string'
 			default: 'disabled'
 			enum: ['disabled', 'save', 'save+reopen']
 		baudRate:
 			title: 'BAUD Rate'
-			description: '''Sets the BAUD rate for the serial monitor, if you change
-			it you need to close and open it manually'''
+			description: '''Sets the BAUD rate for the serial connection, if this is
+			changed the serial monitor will need to be reopened.'''
 			type: 'number'
 			default: '9600'
 		board:
 			title: 'Arduino board'
-			description: '''If kept blank, it will take the settings from the arduino
-			IDE. The board uses the pattern as described
+			description: '''If kept blank, this will take the settings from the
+			Arduino IDE. The board uses the pattern as described
 			<a href="https://github.com/arduino/Arduino/blob/ide-1.5.x/build/shared/manpage.adoc#options">here</a>'''
 			type: 'string'
 			default: ''
 		lineEnding:
 			title: 'Default line ending in serial monitor'
-			description: '''0 - No line ending<br>1 - Newline<br>2 - Carriage return
-			<br>3 - Both NL &amp; CR'''
+			description: '''
+				0 - No line ending<br>
+				1 - Newline<br>
+				2 - Carriage return<br>
+				3 - Both NL & CR'''
 			type: 'integer'
 			default: 1
 			minimum: 0
@@ -164,13 +165,13 @@ module.exports = ArduinoUpload =
 			atom.commands.dispatch(atom.views.getView(atom.workspace.getActiveTextEditor()), 'window:save-all')
 		{isArduino, workpath, file, name} = @isArduinoProject()
 		if not isArduino
-			atom.notifications.addError "File isn't part of an Arduino sketch!"
+			atom.notifications.addError "The file isn't part of an Arduino sketch!"
 			callback false
 			return
 
 		dispError = false
 		output.reset()
-		atom.notifications.addInfo 'Start building...'
+		atom.notifications.addInfo 'Building...'
 
 		options = [file].concat(options).concat @additionalArduinoOptions file, port
 		stdoutput = spawn getArduinoPath(), options
@@ -178,7 +179,7 @@ module.exports = ArduinoUpload =
 		error = false
 
 		stdoutput.on 'error', (err) =>
-			atom.notifications.addError "Can't find the arduino IDE, please install it and set <i>Arduino Executable Path</i> correctly in the settings! (" + err + ")"
+			atom.notifications.addError "Can't find the Arduino IDE, please install it and set <i>Arduino Executable Path</i> in the settings! (" + err + ")"
 			callback false
 			error = true
 		stdoutput.stdout.on 'data', (data) =>
@@ -216,7 +217,7 @@ module.exports = ArduinoUpload =
 		@_build ['--verify'], (code, info) =>
 			if code != false
 				if code != 0
-					atom.notifications.addError 'Build failed'
+					atom.notifications.addError 'Build failed!'
 				else if keep
 					for ending in ['.eep', '.elf', '.hex', '.bin']
 						fs.createReadStream(info.buildFolder + info.name + ending).pipe(fs.createWriteStream(info.workpath + seperator + info.name + ending))
@@ -224,7 +225,7 @@ module.exports = ArduinoUpload =
 	upload: ->
 		@getPort (port) =>
 			if port == ''
-				atom.notifications.addError 'No arduino connected'
+				atom.notifications.addError 'No Arduino found!'
 				return
 			callback = (code, info) =>
 				if code != false
@@ -232,9 +233,9 @@ module.exports = ArduinoUpload =
 						atom.notifications.addInfo 'Successfully uploaded sketch'
 					else
 						if uploading
-							atom.notifications.addError "Couldn't upload to board, is it connected?"
+							atom.notifications.addError "Couldn't upload the sketch to the board, is it connected?"
 						else
-							atom.notifications.addError 'Build failed'
+							atom.notifications.addError 'Build failed!'
 				if serial != null
 					@_openserialport port, false
 			uploading = false
@@ -242,7 +243,7 @@ module.exports = ArduinoUpload =
 				s = data.toString().toLowerCase()
 				if (s.indexOf("avrdude:") != -1 || s.indexOf("uploading") == 0) && !uploading
 					uploading = true
-					atom.notifications.addInfo 'Uploading sketch...'
+					atom.notifications.addInfo 'Uploading...'
 				return uploading
 			if serial == null
 				# no serial connection open to halt
@@ -302,28 +303,28 @@ module.exports = ArduinoUpload =
 			@serialNormalClose = true
 			serial.on 'open', (data) =>
 				if start
-					atom.notifications.addInfo 'new serial connection'
+					atom.notifications.addInfo 'Serial port opened'
 			serial.on 'data', (data) =>
 				serialeditor?.insertText data
 			serial.on 'close', (data) =>
 				if @serialNormalClose
 					@closeserial()
-					atom.notifications.addInfo 'Serial connection closed'
+					atom.notifications.addInfo 'Serial port closed'
 			serial.on 'error', (data) =>
 				console.log data
 				@closeserial()
-				atom.notifications.addInfo 'error in serial connection'
+				atom.notifications.addInfo "Can't open serial port"
 		catch e
 			@closeserial()
 			atom.notifications.addError e.toString()
 	openserialport: ->
 		if serial!=null
-			atom.notifications.addInfo 'wut, serial open?'
+			atom.notifications.addInfo 'Serial port already open'
 			return
 		p = ''
 		@getPort (port) =>
 			if port == 'PROGRAMMER'
-				atom.notifications.addError 'Can\'t use a programmer as serial monitor!'
+				atom.notifications.addError "Can't use a programmer as serial monitor!"
 				@closeserial()
 				return
 			if port == '' or port == 'ARDUINO'
@@ -334,7 +335,7 @@ module.exports = ArduinoUpload =
 			@_openserialport(port)
 	openserial: ->
 		if serialport == null
-			atom.notifications.addInfo 'Serialport dependency not present, try installing it! (And, if you figure out how, please report me how <a href="https://github.com/Sorunome/arduino-upload/issues">here</a> as I don\'t know how to do it..... Really, <b>please</b> help me! D: )'
+			atom.notifications.addInfo 'Serialport dependency not present!'
 			return
 		if serial!=null
 			return
