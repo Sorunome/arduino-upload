@@ -83,6 +83,7 @@ module.exports = ArduinoUpload =
 		0x0403: [ 0x6001 ] # FTDI
 		0x1a86: [ 0x7523 ] # QuinHeng
 		0x0403: [ 0x6001 ] # Future Technology Devices International, Ltd
+		0x10c4: [ 0xea60 ] # Silicon Labs CP210x USB to UART Bridge
 	}
 	vendorsProgrammer: {
 		0x03eb: [ 0x2141 ] # Atmel ICE debugger
