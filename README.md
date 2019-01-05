@@ -1,6 +1,6 @@
 # Arduino Upload Package
 
-Did you not like the look of the arduino IDE but were stuck with it nevertheless? Not anymore, this package provides some essential features of the arduino IDE.
+Did you not like the look of the Arduino IDE but were stuck with it nevertheless? Not anymore, this package provides some essential features of the Arduino IDE.
 
 * Verify a sketch
 * Build a sketch
@@ -17,8 +17,8 @@ Did you not like the look of the arduino IDE but were stuck with it nevertheless
 ## Troubleshooting
 * The verify/build output does not appear? Make sure your Arduino official IDE language is set to English.
 * Windows
-    * Getting `Uncaught Error: spawn EPERM`? Be sure you don't have the Microsoft Store version of the Arduino IDE. - [#65](https://github.com/Sorunome/arduino-upload/issues/65)
-    * Can't install because of the serialport package? Try installing the [Visual C++ 2015 building tools](https://github.com/felixrieseberg/windows-build-tools) by running `.\npm install --global --production windows-build-tools` from the directory `%LocalAppData%\atom\app-[VERSION]\resources\app\apm\bin` in an adminastrative PowerShell (this uses atoms integrated npm instead of requiring an external instance). Then update apm config with `apm config set msvs_version [VERSION]` (the version installed by the tool should be 2015) and `apm config set python [PATH]\python.exe` (where PATH is the path to the python executable). - [#46](https://github.com/Sorunome/arduino-upload/issues/46)
+		* Getting `Uncaught Error: spawn EPERM`? Be sure you don't have the Microsoft Store version of the Arduino IDE. - [#65](https://github.com/Sorunome/arduino-upload/issues/65)
+		* Can't install because of the serialport package? Try installing the [Visual C++ 2015 building tools](https://github.com/felixrieseberg/windows-build-tools) by running `.\npm install --global --production windows-build-tools` from the directory `%LocalAppData%\atom\app-[VERSION]\resources\app\apm\bin` in an adminastrative PowerShell (this uses atoms integrated npm instead of requiring an external instance). Then update apm config with `apm config set msvs_version [VERSION]` (the version installed by the tool should be 2015) and `apm config set python [PATH]\python.exe` (where PATH is the path to the python executable). - [#46](https://github.com/Sorunome/arduino-upload/issues/46)
 
 
 ## Available commands
@@ -30,8 +30,8 @@ Did you not like the look of the arduino IDE but were stuck with it nevertheless
 You can place these commands in a toolbar using the [**Flex Tool Bar**](https://atom.io/packages/flex-tool-bar) package. [Here's how](docs/toolbar.md).
 
 ## Screenshots
-Verifying a program:  
-![verify](https://github.com/Sorunome/arduino-upload/blob/master/screenshots/verify.gif?raw=true)
+Verifying a program:
+![verify](docs/screenshots/verify.gif)
 
-Serial monitor:  
-![serial](https://github.com/Sorunome/arduino-upload/blob/master/screenshots/serial.gif?raw=true)
+Serial monitor:
+![serial](docs/screenshots/serial.gif)
