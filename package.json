@@ -1,32 +1,32 @@
 {
-  "name": "arduino-upload",
-  "main": "./lib/arduino-upload",
-  "version": "1.4.1",
-  "description": "Upload your arduino sketches without using the IDE",
-  "keywords": [
-    "arduino",
-    "upload",
-    "sketch",
-    "serial",
-    "compile"
-  ],
-  "repository": "https://github.com/Sorunome/arduino-upload",
-  "license": "MIT",
-  "engines": {
-    "atom": ">=1.0.0"
-  },
-  "consumedServices": {
-    "status-bar": {
-      "versions": {
-        ">=1.0.0": "consumeStatusBar"
-      }
-    }
-  },
-  "dependencies": {
-    "atom-space-pen-views": ">=2.0.3",
-    "bluebird": ">=3.5.0",
-    "serialport": ">=7.0.2",
-    "tmp": ">=0.0.31",
-    "usb-detection": ">=3.0.0"
-  }
+	"name": "arduino-upload",
+	"main": "./lib/arduino-upload",
+	"version": "1.4.1",
+	"description": "Upload your arduino sketches without using the IDE",
+	"keywords": [
+		"arduino",
+		"upload",
+		"sketch",
+		"serial",
+		"compile"
+	],
+	"repository": "https://github.com/Sorunome/arduino-upload",
+	"license": "MIT",
+	"engines": {
+		"atom": ">=1.0.0"
+	},
+	"consumedServices": {
+		"status-bar": {
+			"versions": {
+				">=1.0.0": "consumeStatusBar"
+			}
+		}
+	},
+	"dependencies": {
+		"atom-space-pen-views": ">=2.0.3",
+		"bluebird": ">=3.5.0",
+		"serialport": ">=7.0.2",
+		"tmp": ">=0.0.31",
+		"usb-detection": ">=3.0.0"
+	}
 }
