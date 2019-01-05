@@ -1,8 +1,8 @@
-@seperator = '/'
+@separator = '/'
 if /^win/.test process.platform
-	@seperator = '\\'
+	@separator = '\\'
 
-@getArduinoPath = () => 
+@getArduinoPath = () =>
 	execPath = atom.config.get 'arduino-upload.arduinoExecutablePath'
 	if execPath == 'arduino'
 		# we want the default path which is actually dependent on our os

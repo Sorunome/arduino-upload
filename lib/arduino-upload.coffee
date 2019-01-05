@@ -7,7 +7,7 @@ path = require 'path'
 OutputView = require './output-view'
 SerialView = require './serial-view'
 tmp = require 'tmp'
-{ seperator, getArduinoPath } = require './util'
+{ separator, getArduinoPath } = require './util'
 Boards = require './boards'
 
 try
@@ -146,14 +146,14 @@ module.exports = ArduinoUpload =
 		return options
 	isArduinoProject: () ->
 		editor = atom.workspace.getActivePaneItem()
-		file = editor?.buffer?.file?.getPath()?.split seperator
+		file = editor?.buffer?.file?.getPath()?.split separator
 		file?.pop()
 		name = file?.pop()
 		file?.push name
-		workpath = file?.join seperator
+		workpath = file?.join separator
 		name += '.ino'
 		file?.push name
-		file = file?.join seperator
+		file = file?.join separator
 		isArduino = fs.existsSync file
 		return {isArduino, workpath, file, name}
 	_build: (options, callback, onerror, port = false) ->
@@ -221,7 +221,7 @@ module.exports = ArduinoUpload =
 					atom.notifications.addError 'Build failed!'
 				else if keep
 					for ending in ['.eep', '.elf', '.hex', '.bin']
-						fs.createReadStream(info.buildFolder + info.name + ending).pipe(fs.createWriteStream(info.workpath + seperator + info.name + ending))
+						fs.createReadStream(info.buildFolder + separator + info.name + ending).pipe(fs.createWriteStream(info.workpath + separator + info.name + ending))
 
 	upload: ->
 		@getPort (port) =>

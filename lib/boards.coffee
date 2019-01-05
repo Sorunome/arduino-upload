@@ -6,8 +6,8 @@ fs = require 'fs'
 
 readdir = Promise.promisify(fs.readdir)
 readFile = Promise.promisify(fs.readFile)
-{ seperator, getArduinoPath } = require './util'
-module.exports = 
+{ separator, getArduinoPath } = require './util'
+module.exports =
 	class Boards extends SelectListView
 		inited: false
 		loaded: false
@@ -39,14 +39,14 @@ module.exports =
 		parseNewPath: (path) ->
 			return readdir(path).then((files) =>
 				Promise.each(files, (pkg) =>
-					path2 = path + seperator + pkg + seperator + 'hardware'
+					path2 = path + separator + pkg + separator + 'hardware'
 					readdir(path2).then((files) =>
 						Promise.each(files, (arch) =>
-							path3 = path2 + seperator + arch
+							path3 = path2 + separator + arch
 							readdir(path3).then((files) =>
 								Promise.each(files, (version) =>
-									path4 = path3 + seperator + version
-									return @addBoards pkg, arch, path4 + seperator + 'boards.txt'
+									path4 = path3 + separator + version
+									return @addBoards pkg, arch, path4 + separator + 'boards.txt'
 								)
 							).catch((err) =>
 								# do nothing
@@ -62,12 +62,12 @@ module.exports =
 		parseOldPath: (path) ->
 			return readdir(path).then((files) =>
 				Promise.each(files, (pkg) =>
-					path2 = path + seperator + pkg
+					path2 = path + separator + pkg
 					readdir(path2).then((files) =>
 						Promise.each(files, (arch) =>
-							return @addBoards pkg, arch, path2 + seperator + arch + seperator + 'boards.txt'
+							return @addBoards pkg, arch, path2 + separator + arch + separator + 'boards.txt'
 						)
-					).catch((err) => 
+					).catch((err) =>
 						# do nothing
 					)
 				)
@@ -81,17 +81,17 @@ module.exports =
 			# first we parse the arduino15 file structure
 			path = ''
 			if /^win/.test process.platform
-				path = process.env.LOCALAPPDATA + seperator + 'Arduino15'
+				path = process.env.LOCALAPPDATA + separator + 'Arduino15'
 			else if process.platform == 'darwin'
-				path = process.env.HOME + seperator + 'Arduino15'
+				path = process.env.HOME + separator + 'Arduino15'
 			else
-				path = process.env.HOME + seperator + '.arduino15'
-			path += seperator + 'packages'
+				path = process.env.HOME + separator + '.arduino15'
+			path += separator + 'packages'
 			@parseNewPath(path).then( =>
 				if /^win/.test process.platform
-					path = getArduinoPath().split(seperator)
+					path = getArduinoPath().split(separator)
 					path.pop()
-					path = path.join(seperator) + seperator + 'hardware'
+					path = path.join(separator) + separator + 'hardware'
 					return @parseOldPath(path)
 			).then( =>
 				# parse the pre-arduino 1.5 boards
@@ -109,8 +109,8 @@ module.exports =
 								res.pop()
 							res = res[res.length - 1]
 							resolve res
-				).then((path) => 
-					path = path.strip() + seperator + 'hardware'
+				).then((path) =>
+					path = path.strip() + separator + 'hardware'
 					@parseOldPath(path)
 				)
 			).finally( =>
@@ -128,7 +128,7 @@ module.exports =
 		populateStatusBar: ->
 			@div.innerHTML = ''
 			@selectNode = document.createElement 'select'
-			
+
 			op = new Option()
 			op.value = ''
 			op.text = '== Arduino Setting =='
@@ -143,7 +143,7 @@ module.exports =
 				op.text = @boards[board]
 				@selectNode.options.add op
 			@div.appendChild @selectNode
-			
+
 			cfg = atom.config.get 'arduino-upload.board'
 			if @boards[cfg] || cfg == ''
 				@selectNode.value = cfg
