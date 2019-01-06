@@ -47,4 +47,5 @@ Please note that Flex Tool Bar can use many different configuration files and ea
 ```
 
 Here's the result:
-![tool-bar](docs/screenshots/tool-bar.png)
+
+![tool-bar.png](screenshots/tool-bar.png)
