@@ -268,12 +268,12 @@ module.exports = ArduinoUpload =
 					return true
 		return false
 	_getPort: (callback) ->
-		serialport.list (err, ports) =>
+		serialport.list().then (ports) =>
 			console.log ports
 			p = ''
 			for port in ports
 				if @isArduino(port.vendorId, port.productId)
-					p = port.comName
+					p = port.path;
 					break
 			callback p
 	getPort: (callback) ->
