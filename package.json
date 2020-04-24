@@ -27,6 +27,6 @@
 		"bluebird": ">=3.5.0",
 		"serialport": ">=8.0.6",
 		"tmp": ">=0.0.31",
-		"usb-detection": ">=3.0.0"
+		"usb-detection": ">=4.8.0"
 	}
 }
